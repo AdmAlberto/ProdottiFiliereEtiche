@@ -12,80 +12,128 @@
     body { background-color: #f8f9fa; padding-bottom: 100px; }
     .product-card { margin-bottom: 20px; }
     .cart-sticky { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
+    
+    /* Stili per centrare il login */
+    #login-section { height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .login-card { width: 100%; max-width: 400px; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); background: white; }
   </style>
 </head>
 <body>
 
-  <div class="container mt-4">
-    <h2 class="mb-4">🍻 Catalogo Birre B2B</h2>
-
-    <div class="card mb-4 shadow-sm border-0">
-      <div class="card-body">
-        <label class="form-label fw-bold">Rif. Cliente (Nome o Codice Danea)</label>
-        <input type="text" class="form-control" id="clienteId" placeholder="Es. Mario Rossi SRL" required>
+  <div id="login-section">
+    <div class="login-card text-center">
+      <h3 class="mb-4">🍻 Accesso B2B</h3>
+      <div class="mb-3 text-start">
+        <label class="form-label text-muted small">Email Cliente</label>
+        <input type="email" id="login-email" class="form-control" placeholder="es. mario@azienda.it">
       </div>
-    </div>
-    
-    <div id="app" class="row text-center py-5">
-      <p class="text-muted">Caricamento catalogo dal Database...</p>
+      <div class="mb-4 text-start">
+        <label class="form-label text-muted small">Password</label>
+        <input type="password" id="login-password" class="form-control" placeholder="********">
+      </div>
+      <button class="btn btn-primary w-100 fw-bold" onclick="eseguiLogin()" id="btn-login">Entra nel Catalogo</button>
+      <p id="login-error" class="text-danger mt-3 mb-0" style="display:none;">Credenziali errate, riprova.</p>
     </div>
   </div>
 
-  <div class="bg-white p-3 border-top cart-sticky d-flex justify-content-between align-items-center px-md-5">
-    <div>
-      <span class="text-muted">Totale:</span>
-      <h4 class="mb-0 text-primary d-inline" id="cart-total">€ 0.00</h4>
+  <div id="app-section" style="display: none;">
+    
+    <div class="container mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🍻 Catalogo Birre</h2>
+        <span class="badge bg-secondary fs-6" id="nome-cliente-display"></span>
+      </div>
+      
+      <div id="app" class="row text-center py-5">
+        <p class="text-muted">Caricamento catalogo...</p>
+      </div>
     </div>
-    <button id="btn-checkout" class="btn btn-primary btn-lg fw-bold" onclick="inviaOrdine()">
-      🛒 Invia Ordine
-    </button>
+
+    <div class="bg-white p-3 border-top cart-sticky d-flex justify-content-between align-items-center px-md-5">
+      <div>
+        <span class="text-muted">Totale:</span>
+        <h4 class="mb-0 text-primary d-inline" id="cart-total">€ 0.00</h4>
+      </div>
+      <button id="btn-checkout" class="btn btn-primary btn-lg fw-bold" onclick="inviaOrdine()">
+        🛒 Invia Ordine
+      </button>
+    </div>
+
   </div>
 
   <script>
-    // Configurazione del client con nome univoco "clientDB" per evitare conflitti
     const SUPABASE_URL = 'https://plwzkcpujktjqznvwkzb.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsd3prY3B1amt0anF6bnZ3a3piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjE5MzAsImV4cCI6MjA5ODI5NzkzMH0.O7RpanhUWF5zq5DNIvz9DPSdPpk7tYmycuXHRcBpX2k';
     const clientDB = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let cart = {}; // Il nostro carrello invisibile
+    let cart = {}; 
+    let utenteLoggato = null; // Memorizza chi è dentro!
 
-    // Caricamento dati all'avvio della pagina
-    window.onload = async function() {
+    // Funzione di Login
+    async function eseguiLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const psw = document.getElementById('login-password').value.trim();
+      const btn = document.getElementById('btn-login');
+      const errorMsg = document.getElementById('login-error');
+
+      if(!email || !psw) return;
+
+      btn.innerText = "Controllo...";
+      btn.disabled = true;
+      errorMsg.style.display = 'none';
+
+      // Cerchiamo il cliente su Supabase
+      const { data, error } = await clientDB
+        .from('clienti')
+        .select('*')
+        .eq('email', email)
+        .eq('password', psw)
+        .single(); // Chiediamo a Supabase di restituirci un solo risultato esatto
+
+      if (error || !data) {
+        errorMsg.style.display = 'block';
+        btn.innerText = "Entra nel Catalogo";
+        btn.disabled = false;
+      } else {
+        // Login con successo!
+        utenteLoggato = data; // Salviamo i dati del cliente
+        document.getElementById('login-section').style.display = 'none'; // Nascondi login
+        document.getElementById('app-section').style.display = 'block';  // Mostra catalogo
+        document.getElementById('nome-cliente-display').innerText = "👤 " + utenteLoggato.ragione_sociale; // Mostra il nome in alto
+        
+        // Ora carichiamo le birre
+        caricaCatalogo();
+      }
+    }
+
+    // Carica i prodotti (Spostata da window.onload a dopo il login)
+    async function caricaCatalogo() {
       let { data: prodotti, error } = await clientDB.from('prodotti').select('*');
-      
       if (error) {
-        document.getElementById('app').innerHTML = `<p class="text-danger">Errore di connessione al Database: ${error.message}</p>`;
+        document.getElementById('app').innerHTML = `<p class="text-danger">Errore di connessione: ${error.message}</p>`;
         return;
       }
-      
       disegnaProdotti(prodotti);
-    };
+    }
 
-    // Creazione grafica delle card dei prodotti
+    // Creazione grafica delle card
     function disegnaProdotti(prodotti) {
       const app = document.getElementById('app');
-      
       if (!prodotti || prodotti.length === 0) {
-        app.innerHTML = `<p class="text-warning">Nessun prodotto trovato. Controlla il nome della tabella.</p>`;
+        app.innerHTML = `<p class="text-warning">Nessun prodotto trovato.</p>`;
         return;
       }
 
       let html = '';
-      
       prodotti.forEach(p => {
         const cod = p['Cod.']; 
         if(!cod) return; 
-
         const desc = p['Descrizione'] || 'Senza Descrizione';
-        
-        // Generiamo l'URL della foto (Nota: cartella BIrre)
         const imgUrl = 'https://plwzkcpujktjqznvwkzb.supabase.co/storage/v1/object/public/BIrre/' + cod + '.jpg';
         
-        // Pulizia prezzo per i calcoli di JavaScript
         let rawPrice = p['Listino 1 (ivato)'] || "0";
         rawPrice = rawPrice.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim();
         const prezzo = parseFloat(rawPrice) || 0;
-        
         const iva = p['Cod. Iva'] || 22; 
         const safeDesc = desc.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
@@ -107,71 +155,56 @@
             </div>
           </div>`;
       });
-      
       app.innerHTML = html;
     }
 
-    // Gestione del carrello locale
     function addToCart(codice, desc, prezzo, iva) {
       const qtyInput = document.getElementById(`qty_${codice}`);
       const qta = parseInt(qtyInput.value);
-      
       if (qta > 0) {
         if(cart[codice]) cart[codice].qta += qta;
         else cart[codice] = { codice, desc, prezzo, qta, iva };
-        
         aggiornaTotale();
         qtyInput.value = 1; 
       }
     }
 
-    // Aggiornamento della barra del totale in basso
     function aggiornaTotale() {
       let total = 0;
       for (let key in cart) total += cart[key].prezzo * cart[key].qta;
       document.getElementById('cart-total').innerText = `€ ${total.toFixed(2).replace('.', ',')}`;
     }
 
-    // ==========================================
-    // NUOVA FUNZIONE: INVIA ORDINE A SUPABASE
-    // ==========================================
+    // Invio Ordine a Supabase (Aggiornato col Login!)
     async function inviaOrdine() {
-      const clienteId = document.getElementById('clienteId').value.trim();
-      if (!clienteId) return alert("Inserisci il riferimento del cliente.");
-      
       const items = Object.values(cart);
       if (items.length === 0) return alert("Il carrello è vuoto!");
 
-      // Disabilitiamo il bottone per evitare doppi click
       const btn = document.getElementById('btn-checkout');
       btn.innerHTML = "⏳ Invio Ordine in corso...";
       btn.disabled = true;
 
-      // 1. Generiamo l'ID Ordine univoco
       const orderId = 'ORD-' + new Date().getTime();
-      
-      // 2. Prepariamo la data nel formato ISO richiesto da Danea (aaaa-mm-gg)
       const oggi = new Date();
       const dataDanea = oggi.getFullYear() + '-' + ('0' + (oggi.getMonth() + 1)).slice(-2) + '-' + ('0' + oggi.getDate()).slice(-2);
 
-      // 3. SALVATAGGIO IN TESTATA
+      // Usiamo i dati del cliente loggato in automatico!
       const { error: errorTestata } = await clientDB.from('ordini_testata').insert([
         {
           id_ordine: orderId,
           data: dataDanea,
-          cliente_ragione_sociale: clienteId, // Testo inserito a mano dall'utente
-          cliente_codice_danea: ""            // Vuoto finché non attiviamo il login
+          cliente_ragione_sociale: utenteLoggato.ragione_sociale, 
+          cliente_codice_danea: utenteLoggato.codice_danea      
         }
       ]);
 
       if (errorTestata) {
-        alert("Errore salvataggio testata: " + errorTestata.message + "\nHai creato la colonna con il nome esatto?");
+        alert("Errore salvataggio testata: " + errorTestata.message);
         btn.innerHTML = "🛒 Invia Ordine";
         btn.disabled = false;
         return;
       }
 
-      // 4. PREPARAZIONE RIGHE DETTAGLIO
       const righeDettaglio = items.map(item => ({
         id_ordine: orderId,
         codice_articolo: item.codice,
@@ -179,19 +212,16 @@
         prezzo_unitario: item.prezzo
       }));
 
-      // 5. SALVATAGGIO IN DETTAGLIO
       const { error: errorDettaglio } = await clientDB.from('ordini_dettaglio').insert(righeDettaglio);
 
       if (errorDettaglio) {
-        alert("Errore salvataggio righe: " + errorDettaglio.message + "\nControlla le colonne della tabella ordini_dettaglio.");
+        alert("Errore salvataggio righe: " + errorDettaglio.message);
       } else {
         alert("🎉 Spettacolo! Ordine registrato correttamente nel Database.");
-        cart = {}; // Svuota il carrello
+        cart = {}; 
         aggiornaTotale();
-        document.getElementById('clienteId').value = '';
       }
 
-      // Ripristiniamo il bottone
       btn.innerHTML = "🛒 Invia Ordine";
       btn.disabled = false;
     }
