@@ -42,46 +42,33 @@
   </div>
 
   <script>
-    // ==========================================
-    // 1. CONFIGURAZIONE SUPABASE
-    // ==========================================
     const SUPABASE_URL = 'https://plwzkcpujktjqznvwkzb.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsd3prY3B1amt0anF6bnZ3a3piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjE5MzAsImV4cCI6MjA5ODI5NzkzMH0.O7RpanhUWF5zq5DNIvz9DPSdPpk7tYmycuXHRcBpX2k';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let cart = {}; // Il nostro carrello invisibile
+    let cart = {}; 
 
-    // ==========================================
-    // 2. CARICAMENTO DATI ALL'AVVIO
-    // ==========================================
     window.onload = async function() {
-      // Chiede a Supabase di leggere la tabella "prodotti"
       let { data: prodotti, error } = await supabase.from('prodotti').select('*');
       
       if (error) {
-        document.getElementById('app').innerHTML = `<p class="text-danger">Errore di connessione a Supabase: ${error.message}</p>`;
+        document.getElementById('app').innerHTML = `<p class="text-danger">Errore DB: ${error.message}</p>`;
         return;
       }
-      
       disegnaProdotti(prodotti);
     };
 
-    // ==========================================
-    // 3. CREAZIONE GRAFICA DELLE CARD
-    // ==========================================
     function disegnaProdotti(prodotti) {
       const app = document.getElementById('app');
       let html = '';
       
       prodotti.forEach(p => {
-        // Nomi delle colonne esatte del tuo CSV importato
         const cod = p['Cod.']; 
         if(!cod) return; 
 
         const desc = p['Descrizione'] || 'Senza Descrizione';
         const imgUrl = p['Immagine'] || 'https://via.placeholder.com/150?text=No+Foto';
         
-        // Pulizia prezzo per JavaScript
         let rawPrice = p['Listino 1 (ivato)'] || "0";
         rawPrice = rawPrice.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim();
         const prezzo = parseFloat(rawPrice) || 0;
@@ -111,9 +98,6 @@
       app.innerHTML = html;
     }
 
-    // ==========================================
-    // 4. GESTIONE CARRELLO
-    // ==========================================
     function addToCart(codice, desc, prezzo, iva) {
       const qtyInput = document.getElementById(`qty_${codice}`);
       const qta = parseInt(qtyInput.value);
@@ -124,7 +108,6 @@
         
         aggiornaTotale();
         qtyInput.value = 1; 
-        alert(`Aggiunto al carrello: ${desc}`);
       }
     }
 
@@ -134,20 +117,14 @@
       document.getElementById('cart-total').innerText = `€ ${total.toFixed(2).replace('.', ',')}`;
     }
 
-    // ==========================================
-    // 5. ESPORTAZIONE CSV PER DANEA
-    // ==========================================
     function scaricaOrdineDanea() {
       const clienteId = document.getElementById('clienteId').value.trim();
       if (!clienteId) return alert("Inserisci il riferimento del cliente.");
-
       const items = Object.values(cart);
       if (items.length === 0) return alert("Il carrello è vuoto!");
 
-      // 1. Creiamo l'intestazione CSV come da tuo modello
       let csvContent = "Cod.;Descrizione;Q.tà;Prezzo ivato;U.m.;Sconti;Iva;Mag.;Importo ivato\r\n";
 
-      // 2. Compiliamo le righe
       items.forEach(item => {
         let descPulita = item.desc.replace(/"/g, '""'); 
         let importoRiga = (item.qta * item.prezzo).toFixed(2).replace('.', ',');
@@ -156,7 +133,6 @@
         csvContent += `${item.codice};"${descPulita}";${item.qta};${prezzoFormattato};pz;;${item.iva};Sì;${importoRiga}\r\n`;
       });
 
-      // 3. Scarichiamo il file
       const blob = new Blob([csvContent], { type: 'text/csv;charset=windows-1252;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -166,10 +142,8 @@
       link.click();
       document.body.removeChild(link);
 
-      // Svuota carrello dopo il download
       cart = {};
       aggiornaTotale();
-      alert("File scaricato! Ora puoi importarlo su Danea Easyfatt.");
     }
   </script>
 </body>
