@@ -27,7 +27,7 @@
     </div>
     
     <div id="app" class="row text-center py-5">
-      <p class="text-muted">Caricamento catalogo da Supabase...</p>
+      <p class="text-muted">Caricamento catalogo dal Database...</p>
     </div>
   </div>
 
@@ -42,14 +42,16 @@
   </div>
 
   <script>
+    // Abbiamo cambiato il nome in "clientDB" per evitare conflitti!
     const SUPABASE_URL = 'https://plwzkcpujktjqznvwkzb.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsd3prY3B1amt0anF6bnZ3a3piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjE5MzAsImV4cCI6MjA5ODI5NzkzMH0.O7RpanhUWF5zq5DNIvz9DPSdPpk7tYmycuXHRcBpX2k';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const clientDB = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let cart = {}; 
 
     window.onload = async function() {
-      let { data: prodotti, error } = await supabase.from('prodotti').select('*');
+      // Usiamo clientDB e cerchiamo la tabella 'prodotti' in minuscolo
+      let { data: prodotti, error } = await clientDB.from('prodotti').select('*');
       
       if (error) {
         document.getElementById('app').innerHTML = `<p class="text-danger">Errore DB: ${error.message}</p>`;
@@ -60,6 +62,13 @@
 
     function disegnaProdotti(prodotti) {
       const app = document.getElementById('app');
+      
+      // Se non trova nulla, mostra questo messaggio
+      if (!prodotti || prodotti.length === 0) {
+        app.innerHTML = `<p class="text-warning">Nessun prodotto trovato. Controlla che la tabella su Supabase si chiami esattamente "prodotti".</p>`;
+        return;
+      }
+
       let html = '';
       
       prodotti.forEach(p => {
