@@ -117,9 +117,16 @@
         errorMsg.style.display = 'block'; btn.innerText = "Accedi al Portale"; btn.disabled = false;
       } else {
         utenteLoggato = data; 
+        
+        // Se il cliente non ha un listino assegnato, impostiamo l'1 di default
+        if (!utenteLoggato.listino) utenteLoggato.listino = 1;
+
         document.getElementById('login-section').style.display = 'none'; 
         document.getElementById('app-section').style.display = 'block';  
-        document.getElementById('nome-cliente-display').innerText = utenteLoggato.ragione_sociale; 
+        
+        // Mostriamo il nome cliente e il suo listino nel badge in alto
+        document.getElementById('nome-cliente-display').innerText = `${utenteLoggato.ragione_sociale} (Listino ${utenteLoggato.listino})`; 
+        
         caricaCatalogo();
       }
     }
@@ -136,13 +143,21 @@
         const cod = p['Cod.']; if(!cod) return; 
         const desc = p['Descrizione'] || 'N/D';
         const imgUrl = 'https://plwzkcpujktjqznvwkzb.supabase.co/storage/v1/object/public/BIrre/' + cod + '.jpg';
-        let rawPrice = p['Listino 1 (ivato)'] || "0";
+        
+        // LOGICA MULTI-LISTINO
+        const listinoUtente = utenteLoggato.listino;
+        const nomeColonnaPrezzo = `Listino ${listinoUtente} (ivato)`;
+        
+        // Cerca il prezzo nel listino specifico, se manca usa il Listino 1 come salvagente
+        let rawPrice = p[nomeColonnaPrezzo];
+        if (!rawPrice) {
+          rawPrice = p['Listino 1 (ivato)'] || "0";
+        }
+        
         const prezzo = parseFloat(rawPrice.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
         
-        // Estraiamo il valore numerico dell'IVA (es. "22" o 22)
         const ivaRaw = p['Cod. Iva'];
         const iva = ivaRaw ? parseFloat(ivaRaw.toString().replace('%','').trim()) : 22; 
-        
         const safeDesc = desc.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
         html += `
@@ -191,8 +206,6 @@
       for (let key in cart) {
         let item = cart[key];
         let rigaLordo = item.prezzo * item.qta;
-        
-        // Calcolo matematico per ricavare l'Imponibile dal Lordo (Lordo / 1.XX)
         let aliquota = item.iva / 100;
         let rigaNetto = rigaLordo / (1 + aliquota);
 
@@ -216,7 +229,6 @@
 
       let totaleIva = totalLordo - totalNetto;
 
-      // Aggiornamento dei testi nell'interfaccia
       document.getElementById('cart-total-bar').innerText = `€ ${totalLordo.toFixed(2).replace('.', ',')}`;
       document.getElementById('cart-offcanvas-total').innerText = `€ ${totalLordo.toFixed(2).replace('.', ',')}`;
       document.getElementById('cart-imponibile').innerText = `€ ${totalNetto.toFixed(2).replace('.', ',')}`;
