@@ -36,8 +36,8 @@
       <span class="text-muted">Totale:</span>
       <h4 class="mb-0 text-primary d-inline" id="cart-total">€ 0.00</h4>
     </div>
-    <button id="btn-checkout" class="btn btn-primary btn-lg fw-bold" onclick="scaricaOrdineDanea()">
-      🛒 Scarica CSV per Danea
+    <button id="btn-checkout" class="btn btn-primary btn-lg fw-bold" onclick="inviaOrdine()">
+      🛒 Invia Ordine
     </button>
   </div>
 
@@ -78,7 +78,7 @@
 
         const desc = p['Descrizione'] || 'Senza Descrizione';
         
-        // OPZIONE 1: Generiamo l'URL della foto unendo il percorso base + CODICE PRODOTTO + .jpg
+        // Generiamo l'URL della foto (Nota: cartella BIrre)
         const imgUrl = 'https://plwzkcpujktjqznvwkzb.supabase.co/storage/v1/object/public/BIrre/' + cod + '.jpg';
         
         // Pulizia prezzo per i calcoli di JavaScript
@@ -132,35 +132,68 @@
       document.getElementById('cart-total').innerText = `€ ${total.toFixed(2).replace('.', ',')}`;
     }
 
-    // Generazione ed esportazione del file CSV compatibile con Easyfatt
-    function scaricaOrdineDanea() {
+    // ==========================================
+    // NUOVA FUNZIONE: INVIA ORDINE A SUPABASE
+    // ==========================================
+    async function inviaOrdine() {
       const clienteId = document.getElementById('clienteId').value.trim();
       if (!clienteId) return alert("Inserisci il riferimento del cliente.");
+      
       const items = Object.values(cart);
       if (items.length === 0) return alert("Il carrello è vuoto!");
 
-      let csvContent = "Cod.;Descrizione;Q.tà;Prezzo ivato;U.m.;Sconti;Iva;Mag.;Importo ivato\r\n";
+      // Disabilitiamo il bottone per evitare doppi click
+      const btn = document.getElementById('btn-checkout');
+      btn.innerHTML = "⏳ Invio Ordine in corso...";
+      btn.disabled = true;
 
-      items.forEach(item => {
-        let descPulita = item.desc.replace(/"/g, '""'); 
-        let importoRiga = (item.qta * item.prezzo).toFixed(2).replace('.', ',');
-        let prezzoFormattato = Number(item.prezzo).toFixed(2).replace('.', ',');
-        
-        csvContent += `${item.codice};"${descPulita}";${item.qta};${prezzoFormattato};pz;;${item.iva};Sì;${importoRiga}\r\n`;
-      });
+      // 1. Generiamo l'ID Ordine univoco
+      const orderId = 'ORD-' + new Date().getTime();
+      
+      // 2. Prepariamo la data nel formato ISO richiesto da Danea (aaaa-mm-gg)
+      const oggi = new Date();
+      const dataDanea = oggi.getFullYear() + '-' + ('0' + (oggi.getMonth() + 1)).slice(-2) + '-' + ('0' + oggi.getDate()).slice(-2);
 
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=windows-1252;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Ordine_Danea_${clienteId}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // 3. SALVATAGGIO IN TESTATA
+      const { error: errorTestata } = await clientDB.from('ordini_testata').insert([
+        {
+          id_ordine: orderId,
+          data: dataDanea,
+          cliente_ragione_sociale: clienteId, // Testo inserito a mano dall'utente
+          cliente_codice_danea: ""            // Vuoto finché non attiviamo il login
+        }
+      ]);
 
-      // Svuota il carrello dopo il download
-      cart = {};
-      aggiornaTotale();
+      if (errorTestata) {
+        alert("Errore salvataggio testata: " + errorTestata.message + "\nHai creato la colonna con il nome esatto?");
+        btn.innerHTML = "🛒 Invia Ordine";
+        btn.disabled = false;
+        return;
+      }
+
+      // 4. PREPARAZIONE RIGHE DETTAGLIO
+      const righeDettaglio = items.map(item => ({
+        id_ordine: orderId,
+        codice_articolo: item.codice,
+        quantita: item.qta,
+        prezzo_unitario: item.prezzo
+      }));
+
+      // 5. SALVATAGGIO IN DETTAGLIO
+      const { error: errorDettaglio } = await clientDB.from('ordini_dettaglio').insert(righeDettaglio);
+
+      if (errorDettaglio) {
+        alert("Errore salvataggio righe: " + errorDettaglio.message + "\nControlla le colonne della tabella ordini_dettaglio.");
+      } else {
+        alert("🎉 Spettacolo! Ordine registrato correttamente nel Database.");
+        cart = {}; // Svuota il carrello
+        aggiornaTotale();
+        document.getElementById('clienteId').value = '';
+      }
+
+      // Ripristiniamo il bottone
+      btn.innerHTML = "🛒 Invia Ordine";
+      btn.disabled = false;
     }
   </script>
 </body>
