@@ -14,7 +14,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <style>
-    /* IL NUOVO TEMA BORDEAUX E ARANCIO */
+    /* IL TEMA BORDEAUX E ARANCIO */
     :root {
       --bordeaux: #7c1a22; 
       --bordeaux-dark: #5a1117;
@@ -347,7 +347,7 @@
       }
     }
 
-    // Sconnessione Utente (Logout Completo)
+    // Sconnessione Utente (Logout Completo con FIX ripristino bottone)
     function eseguiLogout() {
       var mioModal = bootstrap.Modal.getInstance(document.getElementById('profiloModal'));
       if(mioModal) mioModal.hide();
@@ -357,6 +357,13 @@
       
       document.getElementById('login-password').value = '';
       document.getElementById('prof-nuova-psw').value = '';
+      
+      // FIX: Risvegliamo il pulsante di login riportandolo allo stato iniziale attivo
+      const btnLogin = document.getElementById('btn-login');
+      if (btnLogin) {
+        btnLogin.innerText = "Accedi al Portale";
+        btnLogin.disabled = false;
+      }
       
       aggiornaInterfacciaCarrello();
 
@@ -448,15 +455,15 @@
 
     // Apertura Dettaglio Scheda Prodotto
     function apriDettaglioProdotto(codice) {
-      const prodotto = tuttiProdotti.find(p => p['Cod.'] === codice);
-      if(!prodotto) return;
+      const producto = tuttiProdotti.find(p => p['Cod.'] === codice);
+      if(!producto) return;
 
-      const desc = prodotto['Descrizione'] || 'N/D';
+      const desc = producto['Descrizione'] || 'N/D';
       const imgUrl = 'https://plwzkcpujktjqznvwkzb.supabase.co/storage/v1/object/public/BIrre/' + codice + '.jpg';
       
       const listinoUtente = utenteLoggato.listino;
-      let rawPrice = prodotto[`Listino ${listinoUtente} (ivato)`];
-      if (!rawPrice) { rawPrice = prodotto['Listino 1 (ivato)'] || "0"; }
+      let rawPrice = producto[`Listino ${listinoUtente} (ivato)`];
+      if (!rawPrice) { rawPrice = producto['Listino 1 (ivato)'] || "0"; }
       const prezzo = parseFloat(rawPrice.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
 
       document.getElementById('modal-prod-img').src = imgUrl;
@@ -465,9 +472,9 @@
       document.getElementById('modal-prod-title').innerText = desc;
       document.getElementById('modal-prod-code').innerText = `CODICE PRODOTTO: ${codice}`;
       document.getElementById('modal-prod-price').innerText = `€ ${prezzo.toFixed(2).replace('.', ',')}`;
-      document.getElementById('modal-prod-cat').innerText = prodotto['Categoria'] || 'Generico';
+      document.getElementById('modal-prod-cat').innerText = producto['Categoria'] || 'Generico';
       
-      document.getElementById('modal-prod-desc').innerText = prodotto['Note'] || prodotto['Descrizione aggiuntiva'] || 'Nessuna descrizione tecnica aggiuntiva disponibile.';
+      document.getElementById('modal-prod-desc').innerText = producto['Note'] || producto['Descrizione aggiuntiva'] || 'Nessuna descrizione tecnica aggiuntiva disponibile.';
 
       const mioModal = new bootstrap.Modal(document.getElementById('prodottoModal'));
       mioModal.show();
