@@ -20,17 +20,15 @@
       --bordeaux-dark: #5a1117;
       --orange: #e65c00;   
       --orange-hover: #cc5200;
-      --bg-color: #fffaf7; /* Sfondo leggermente caldo */
+      --bg-color: #fffaf7; 
     }
 
     body { background-color: var(--bg-color); padding-bottom: 100px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     
-    /* Colori Testi e Sfondi Custom */
     .text-bordeaux { color: var(--bordeaux) !important; }
     .text-orange { color: var(--orange) !important; }
     .bg-bordeaux { background-color: var(--bordeaux) !important; color: white; }
     
-    /* Bottoni Custom */
     .btn-bordeaux { background-color: var(--bordeaux); color: white; border: none; transition: 0.3s; }
     .btn-bordeaux:hover { background-color: var(--bordeaux-dark); color: white; }
     .btn-orange { background-color: var(--orange); color: white; border: none; transition: 0.3s; }
@@ -38,7 +36,6 @@
     .btn-outline-bordeaux { border: 2px solid var(--bordeaux); color: var(--bordeaux); font-weight: bold; transition: 0.3s; }
     .btn-outline-bordeaux:hover { background-color: var(--bordeaux); color: white; }
 
-    /* Struttura */
     .center-screen { height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; }
     
     .auth-card { 
@@ -58,6 +55,12 @@
       box-shadow: 0 12px 25px rgba(124, 26, 34, 0.15) !important; 
     }
     
+    /* Cursore a manina per indicare che la foto è cliccabile */
+    .product-img-click { cursor: pointer; transition: opacity 0.2s; }
+    .product-img-click:hover { opacity: 0.85; }
+    .product-title-click { cursor: pointer; }
+    .product-title-click:hover { color: var(--orange) !important; }
+
     .cart-sticky { 
       position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1000; 
       box-shadow: 0 -5px 20px rgba(0,0,0,0.08); 
@@ -67,7 +70,6 @@
     .cart-item { border-bottom: 1px solid #f0e6e6; padding-bottom: 10px; margin-bottom: 10px; }
     .riepilogo-riga { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 5px; color: #6c757d; }
     
-    /* Input e Select */
     .form-control:focus, .form-select:focus { border-color: var(--orange); box-shadow: 0 0 0 0.25rem rgba(230, 92, 0, 0.25); }
   </style>
 </head>
@@ -209,6 +211,34 @@
     </div>
   </div>
 
+  <div class="modal fade" id="prodottoModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header border-bottom-0 pb-0">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+        </div>
+        <div class="modal-body p-4 pt-0">
+          <div class="row align-items-center">
+            <div class="col-md-6 text-center mb-3 mb-md-0">
+              <img id="modal-prod-img" src="" class="img-fluid rounded p-2 border" style="max-height: 350px; object-fit: contain;">
+            </div>
+            <div class="col-md-6">
+              <span id="modal-prod-cat" class="badge bg-bordeaux mb-2"></span>
+              <h4 id="modal-prod-title" class="fw-bold text-dark"></h4>
+              <p id="modal-prod-code" class="text-muted small mb-3" style="letter-spacing: 0.5px;"></p>
+              <h3 id="modal-prod-price" class="text-orange fw-bold mb-4"></h3>
+              
+              <div class="border-top pt-3">
+                <h6 class="fw-bold text-secondary mb-2">Descrizione Prodotto:</h6>
+                <p id="modal-prod-desc" class="text-dark" style="white-space: pre-line; line-height: 1.5; font-size: 0.95rem;"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://plwzkcpujktjqznvwkzb.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsd3prY3B1amt0anF6bnZ3a3piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjE5MzAsImV4cCI6MjA5ODI5NzkzMH0.O7RpanhUWF5zq5DNIvz9DPSdPpk7tYmycuXHRcBpX2k';
@@ -223,7 +253,7 @@
       document.getElementById('register-section').style.display = 'flex';
     }
     
-    function mostraLogin() {
+    function muestraLogin() {
       document.getElementById('register-section').style.display = 'none';
       document.getElementById('login-section').style.display = 'flex';
     }
@@ -361,15 +391,16 @@
         const safeDesc = desc.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         const catText = p['Categoria'] ? `<span class="badge bg-bordeaux mb-2 bg-opacity-75">${p['Categoria']}</span>` : '';
 
+        // Aggiungiamo un attributo data-index per ripescare l'articolo esatto al volo quando si clicca
         html += `
           <div class="col-lg-3 col-md-4 col-sm-6 product-card text-start">
             <div class="card shadow-sm h-100">
-              <div style="height: 180px; background: #fff; border-radius: 10px 10px 0 0; display: flex; align-items: center; justify-content: center; padding: 15px;">
-                <img src="${imgUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Immagine+non+disponibile';" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+              <div onclick="apriDettaglioProdotto('${cod}')" style="height: 180px; background: #fff; border-radius: 10px 10px 0 0; display: flex; align-items: center; justify-content: center; padding: 15px;">
+                <img src="${imgUrl}" class="product-img-click" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Immagine+non+disponibile';" style="max-height: 100%; max-width: 100%; object-fit: contain;">
               </div>
               <div class="card-body d-flex flex-column bg-white border-top">
                 <div>${catText}</div>
-                <h6 class="card-title fw-bold text-dark" style="font-size: 0.95rem; line-height: 1.3;" title="${desc}">${desc}</h6>
+                <h6 class="card-title fw-bold text-dark product-title-click" onclick="apriDettaglioProdotto('${cod}')" style="font-size: 0.95rem; line-height: 1.3;" title="${desc}">${desc}</h6>
                 <p class="text-muted mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">COD. ${cod}</p>
                 <h4 class="text-orange fw-bold mb-3 mt-auto">€ ${prezzo.toFixed(2).replace('.', ',')}</h4>
                 <div class="input-group mt-auto">
@@ -381,6 +412,39 @@
           </div>`;
       });
       app.innerHTML = html;
+    }
+
+    // NUOVA FUNZIONE: APRE IL POPUP CON LA SCHEDA PRODOTTO DETTAGLIATA
+    function apriDettaglioProdotto(codice) {
+      // Troviamo il prodotto nell'array memorizzato all'avvio
+      const prodotto = tuttiProdotti.find(p => p['Cod.'] === codice);
+      if(!prodotto) return;
+
+      const desc = prodotto['Descrizione'] || 'N/D';
+      const imgUrl = 'https://plwzkcpujktjqznvwkzb.supabase.co/storage/v1/object/public/BIrre/' + codice + '.jpg';
+      
+      const listinoUtente = utenteLoggato.listino;
+      let rawPrice = prodotto[`Listino ${listinoUtente} (ivato)`];
+      if (!rawPrice) { rawPrice = prodotto['Listino 1 (ivato)'] || "0"; }
+      const prezzo = parseFloat(rawPrice.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+
+      // Popoliamo il Modal
+      document.getElementById('modal-prod-img').src = imgUrl;
+      // Gestione del fallimento caricamento immagine anche nel modal
+      document.getElementById('modal-prod-img').onerror = function() { this.src = 'https://via.placeholder.com/150?text=Immagine+non+disponibile'; };
+      
+      document.getElementById('modal-prod-title').innerText = desc;
+      document.getElementById('modal-prod-code').innerText = `CODICE PRODOTTO: ${codice}`;
+      document.getElementById('modal-prod-price').innerText = `€ ${prezzo.toFixed(2).replace('.', ',')}`;
+      document.getElementById('modal-prod-cat').innerText = prodotto['Categoria'] || 'Generico';
+      
+      // Qui carichiamo la descrizione estesa (se Danea la fornisce, usiamo le Note o la colonna corrispondente)
+      // Se non c'è una descrizione lunga, lasciamo il nome del prodotto come riempitivo
+      document.getElementById('modal-prod-desc').innerText = prodotto['Note'] || prodotto['Descrizione aggiuntiva'] || 'Nessuna descrizione tecnica aggiuntiva disponibile.';
+
+      // Mostriamo il Modal a schermo
+      const mioModal = new bootstrap.Modal(document.getElementById('prodottoModal'));
+      mioModal.show();
     }
 
     function addToCart(codice, desc, prezzo, iva) {
