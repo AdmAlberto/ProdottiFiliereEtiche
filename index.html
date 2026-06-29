@@ -5,148 +5,205 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Portale Ordini Filiere Etiche ADM</title>
   
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#7c1a22">
+  <link rel="apple-touch-icon" href="icon.png">
+  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <style>
-    body { background-color: #f8f9fa; padding-bottom: 100px; }
-    .product-card { margin-bottom: 20px; }
-    .cart-sticky { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
+    /* IL NUOVO TEMA BORDEAUX E ARANCIO */
+    :root {
+      --bordeaux: #7c1a22; 
+      --bordeaux-dark: #5a1117;
+      --orange: #e65c00;   
+      --orange-hover: #cc5200;
+      --bg-color: #fffaf7; /* Sfondo leggermente caldo */
+    }
+
+    body { background-color: var(--bg-color); padding-bottom: 100px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    
+    /* Colori Testi e Sfondi Custom */
+    .text-bordeaux { color: var(--bordeaux) !important; }
+    .text-orange { color: var(--orange) !important; }
+    .bg-bordeaux { background-color: var(--bordeaux) !important; color: white; }
+    
+    /* Bottoni Custom */
+    .btn-bordeaux { background-color: var(--bordeaux); color: white; border: none; transition: 0.3s; }
+    .btn-bordeaux:hover { background-color: var(--bordeaux-dark); color: white; }
+    .btn-orange { background-color: var(--orange); color: white; border: none; transition: 0.3s; }
+    .btn-orange:hover { background-color: var(--orange-hover); color: white; }
+    .btn-outline-bordeaux { border: 2px solid var(--bordeaux); color: var(--bordeaux); font-weight: bold; transition: 0.3s; }
+    .btn-outline-bordeaux:hover { background-color: var(--bordeaux); color: white; }
+
+    /* Struttura */
     .center-screen { height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-    .auth-card { width: 100%; max-width: 400px; padding: 2.5rem; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background: white; }
-    .cart-item { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
+    
+    .auth-card { 
+      width: 100%; max-width: 400px; padding: 2.5rem; 
+      border-radius: 12px; background: white; 
+      box-shadow: 0 10px 30px rgba(124, 26, 34, 0.1); 
+      border-top: 6px solid var(--bordeaux);
+    }
+    
+    .product-card { margin-bottom: 25px; }
+    .product-card .card { 
+      border: none; border-bottom: 4px solid var(--orange); 
+      border-radius: 10px; transition: transform 0.2s, box-shadow 0.2s; 
+    }
+    .product-card .card:hover { 
+      transform: translateY(-5px); 
+      box-shadow: 0 12px 25px rgba(124, 26, 34, 0.15) !important; 
+    }
+    
+    .cart-sticky { 
+      position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1000; 
+      box-shadow: 0 -5px 20px rgba(0,0,0,0.08); 
+      border-top: 3px solid var(--bordeaux); 
+    }
+    
+    .cart-item { border-bottom: 1px solid #f0e6e6; padding-bottom: 10px; margin-bottom: 10px; }
     .riepilogo-riga { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 5px; color: #6c757d; }
+    
+    /* Input e Select */
+    .form-control:focus, .form-select:focus { border-color: var(--orange); box-shadow: 0 0 0 0.25rem rgba(230, 92, 0, 0.25); }
   </style>
 </head>
 <body>
 
   <div id="login-section" class="center-screen">
     <div class="auth-card text-center">
-      <h4 class="mb-4 fw-bold text-secondary">Filiere Etiche ADM</h4>
-      <p class="text-muted mb-4">Area Riservata B2B</p>
+      <h3 class="mb-2 fw-bold text-bordeaux">Filiere Etiche ADM</h3>
+      <p class="text-orange fw-semibold mb-4">Area Riservata B2B</p>
+      
       <div class="mb-3 text-start">
-        <label class="form-label text-muted small">Indirizzo Email</label>
+        <label class="form-label text-muted small fw-bold">Indirizzo Email</label>
         <input type="email" id="login-email" class="form-control" placeholder="Inserire email">
       </div>
       <div class="mb-4 text-start">
-        <label class="form-label text-muted small">Password</label>
+        <label class="form-label text-muted small fw-bold">Password</label>
         <input type="password" id="login-password" class="form-control" placeholder="Inserire password">
       </div>
-      <button class="btn btn-dark w-100 fw-bold py-2" onclick="eseguiLogin()" id="btn-login">Accedi al Portale</button>
-      <p id="login-error" class="text-danger mt-3 mb-0" style="display:none;">Credenziali non valide. Riprovare.</p>
+      <button class="btn btn-bordeaux w-100 fw-bold py-2 shadow-sm" onclick="eseguiLogin()" id="btn-login">Accedi al Portale</button>
+      <p id="login-error" class="text-danger mt-3 mb-0 fw-bold" style="display:none;">Credenziali non valide. Riprovare.</p>
       
-      <hr class="mt-4 mb-3">
-      <p class="small text-muted mb-0">Sei un nuovo cliente? <a href="#" onclick="mostraRegistrazione()" class="text-dark fw-bold">Registrati ora</a></p>
+      <hr class="mt-4 mb-3" style="opacity: 0.1;">
+      <p class="small text-muted mb-0">Sei un nuovo cliente? <a href="#" onclick="mostraRegistrazione()" class="text-bordeaux fw-bold text-decoration-none">Registrati ora</a></p>
     </div>
   </div>
 
   <div id="register-section" class="center-screen" style="display: none;">
-    <div class="auth-card text-center">
-      <h4 class="mb-4 fw-bold text-secondary">Nuovo Account B2B</h4>
+    <div class="auth-card text-center border-top-0" style="border-top: 6px solid var(--orange) !important;">
+      <h4 class="mb-4 fw-bold text-orange">Nuovo Account B2B</h4>
+      
       <div class="mb-3 text-start">
-        <label class="form-label text-muted small">Ragione Sociale (o Nome)</label>
+        <label class="form-label text-muted small fw-bold">Ragione Sociale (o Nome)</label>
         <input type="text" id="reg-ragionesociale" class="form-control" placeholder="es. Mario Rossi SRL">
       </div>
       <div class="mb-3 text-start">
-        <label class="form-label text-muted small">Indirizzo Email</label>
+        <label class="form-label text-muted small fw-bold">Indirizzo Email</label>
         <input type="email" id="reg-email" class="form-control" placeholder="es. mario@azienda.it">
       </div>
       <div class="mb-4 text-start">
-        <label class="form-label text-muted small">Scegli una Password</label>
+        <label class="form-label text-muted small fw-bold">Scegli una Password</label>
         <input type="password" id="reg-password" class="form-control" placeholder="Minimo 6 caratteri">
       </div>
-      <button class="btn btn-success w-100 fw-bold py-2" onclick="eseguiRegistrazione()" id="btn-register">Crea Account</button>
+      <button class="btn btn-orange w-100 fw-bold py-2 shadow-sm" onclick="eseguiRegistrazione()" id="btn-register">Crea Account</button>
       
-      <hr class="mt-4 mb-3">
-      <p class="small text-muted mb-0">Hai già un account? <a href="#" onclick="mostraLogin()" class="text-dark fw-bold">Torna al Login</a></p>
+      <hr class="mt-4 mb-3" style="opacity: 0.1;">
+      <p class="small text-muted mb-0">Hai già un account? <a href="#" onclick="mostraLogin()" class="text-orange fw-bold text-decoration-none">Torna al Login</a></p>
     </div>
   </div>
 
   <div id="app-section" style="display: none;">
     <div class="container mt-4">
+      
       <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-        <h3 class="text-secondary fw-bold">Catalogo Prodotti</h3>
-        
+        <h3 class="text-bordeaux fw-bold mb-0">Catalogo Prodotti</h3>
         <div>
-          <span class="badge bg-dark fs-6 px-3 py-2 me-2" id="nome-cliente-display"></span>
-          <button class="btn btn-outline-secondary btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#profiloModal">⚙️ Profilo</button>
+          <span class="badge bg-bordeaux fs-6 px-3 py-2 me-2 shadow-sm" id="nome-cliente-display"></span>
+          <button class="btn btn-outline-secondary btn-sm fw-bold border-0 bg-white shadow-sm" data-bs-toggle="modal" data-bs-target="#profiloModal">⚙️ Profilo</button>
         </div>
       </div>
       
-      <div class="row mb-4" id="filtri-section" style="display: none;">
-        <div class="col-md-6 mb-2">
-          <select id="filtro-categoria" class="form-select border-secondary shadow-sm" onchange="applicaFiltri()">
+      <div class="row mb-4 bg-white p-3 rounded shadow-sm border" id="filtri-section" style="display: none; border-color: #f0e6e6 !important;">
+        <div class="col-md-6 mb-2 mb-md-0">
+          <label class="small text-muted fw-bold mb-1">Filtra per Categoria</label>
+          <select id="filtro-categoria" class="form-select bg-light" onchange="applicaFiltri()">
             <option value="">Tutte le Categorie</option>
           </select>
         </div>
-        <div class="col-md-6 mb-2">
-          <select id="filtro-sottocategoria" class="form-select border-secondary shadow-sm" onchange="applicaFiltri()">
+        <div class="col-md-6">
+          <label class="small text-muted fw-bold mb-1">Filtra per Sottocategoria</label>
+          <select id="filtro-sottocategoria" class="form-select bg-light" onchange="applicaFiltri()">
             <option value="">Tutte le Sottocategorie</option>
           </select>
         </div>
       </div>
       
       <div id="app" class="row text-center py-5">
-        <div class="spinner-border text-secondary mx-auto" role="status"></div>
-        <p class="text-muted mt-3">Sincronizzazione catalogo in corso...</p>
+        <div class="spinner-border text-bordeaux mx-auto" role="status"></div>
+        <p class="text-muted mt-3 fw-bold">Sincronizzazione catalogo in corso...</p>
       </div>
     </div>
 
-    <div class="bg-white p-3 border-top cart-sticky d-flex justify-content-between align-items-center px-md-5">
+    <div class="bg-white p-3 cart-sticky d-flex justify-content-between align-items-center px-md-5">
       <div>
         <span class="text-muted text-uppercase small fw-bold">Totale Ordine:</span>
-        <h4 class="mb-0 text-dark d-inline ms-2" id="cart-total-bar">€ 0.00</h4>
+        <h4 class="mb-0 text-bordeaux fw-bold d-inline ms-2" id="cart-total-bar">€ 0.00</h4>
       </div>
-      <button class="btn btn-dark btn-lg fw-bold shadow-sm px-4" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
-        Vedi Ordine <span class="badge bg-light text-dark ms-2" id="cart-badge">0</span>
+      <button class="btn btn-orange btn-lg fw-bold shadow px-4" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
+        Vedi Ordine <span class="badge bg-white text-orange ms-2 fs-6 rounded-pill" id="cart-badge">0</span>
       </button>
     </div>
   </div>
 
-  <div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas">
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas" style="border-left: 5px solid var(--bordeaux);">
     <div class="offcanvas-header border-bottom bg-light">
-      <h5 class="offcanvas-title fw-bold text-secondary">Riepilogo Ordine</h5>
+      <h5 class="offcanvas-title fw-bold text-bordeaux">Riepilogo Ordine</h5>
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body d-flex flex-column">
-      <div id="cart-items-container" class="flex-grow-1 overflow-auto">
+      <div id="cart-items-container" class="flex-grow-1 overflow-auto pe-2">
         <p class="text-muted text-center mt-5">Nessun articolo selezionato.</p>
       </div>
+      
       <div class="border-top pt-3 mt-3 bg-white">
-        <div class="riepilogo-riga"><span>Imponibile:</span><span id="cart-imponibile">€ 0.00</span></div>
-        <div class="riepilogo-riga border-bottom pb-2 mb-2"><span>Totale IVA:</span><span id="cart-iva">€ 0.00</span></div>
-        <div class="d-flex justify-content-between mb-3 align-items-center">
+        <div class="riepilogo-riga"><span>Imponibile:</span><span id="cart-imponibile" class="fw-semibold">€ 0.00</span></div>
+        <div class="riepilogo-riga border-bottom pb-2 mb-2"><span>Totale IVA:</span><span id="cart-iva" class="fw-semibold">€ 0.00</span></div>
+        <div class="d-flex justify-content-between mb-3 align-items-center mt-3">
           <span class="fw-bold fs-6 text-dark text-uppercase">Totale (Ivato):</span>
-          <span class="fw-bold fs-4 text-dark" id="cart-offcanvas-total">€ 0.00</span>
+          <span class="fw-bold fs-3 text-bordeaux" id="cart-offcanvas-total">€ 0.00</span>
         </div>
-        <button id="btn-checkout" class="btn btn-success btn-lg w-100 fw-bold py-3" onclick="inviaOrdine()">Conferma Ordine</button>
+        <button id="btn-checkout" class="btn btn-bordeaux btn-lg w-100 fw-bold py-3 shadow" onclick="inviaOrdine()">🚀 Conferma Ordine</button>
       </div>
     </div>
   </div>
 
   <div class="modal fade" id="profiloModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header bg-light">
-          <h5 class="modal-title fw-bold text-secondary">Il tuo Profilo B2B</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-bordeaux text-white border-0">
+          <h5 class="modal-title fw-bold">Il tuo Profilo B2B</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body p-4">
           <div class="mb-3">
-            <label class="text-muted small">Ragione Sociale</label>
-            <input type="text" class="form-control bg-light" id="prof-ragione" readonly>
+            <label class="text-muted small fw-bold">Ragione Sociale</label>
+            <input type="text" class="form-control bg-light text-dark fw-semibold border-0" id="prof-ragione" readonly>
           </div>
           <div class="mb-4">
-            <label class="text-muted small">Email (Username)</label>
-            <input type="text" class="form-control bg-light" id="prof-email" readonly>
+            <label class="text-muted small fw-bold">Email (Username)</label>
+            <input type="text" class="form-control bg-light text-dark fw-semibold border-0" id="prof-email" readonly>
           </div>
-          <hr>
-          <h6 class="fw-bold mb-3">Cambia Password</h6>
-          <div class="mb-2">
-            <input type="password" class="form-control" id="prof-nuova-psw" placeholder="Nuova password">
+          <hr style="opacity: 0.1;">
+          <h6 class="fw-bold text-orange mb-3">Cambia Password</h6>
+          <div class="mb-3">
+            <input type="password" class="form-control" id="prof-nuova-psw" placeholder="Inserisci la nuova password">
           </div>
-          <button class="btn btn-outline-dark btn-sm fw-bold w-100" onclick="salvaNuovaPassword()">Aggiorna Password</button>
+          <button class="btn btn-outline-bordeaux w-100 py-2" onclick="salvaNuovaPassword()">Aggiorna Password</button>
         </div>
       </div>
     </div>
@@ -161,7 +218,6 @@
     let utenteLoggato = null; 
     let tuttiProdotti = []; 
 
-    // --- NAVIGAZIONE SCHERMATE INIZIALI ---
     function mostraRegistrazione() {
       document.getElementById('login-section').style.display = 'none';
       document.getElementById('register-section').style.display = 'flex';
@@ -172,7 +228,6 @@
       document.getElementById('login-section').style.display = 'flex';
     }
 
-    // --- REGISTRAZIONE NUOVO CLIENTE ---
     async function eseguiRegistrazione() {
       const ragSoc = document.getElementById('reg-ragionesociale').value.trim();
       const email = document.getElementById('reg-email').value.trim();
@@ -184,7 +239,6 @@
 
       btn.innerText = "Creazione in corso..."; btn.disabled = true;
 
-      // 1. Controlla se l'email esiste già
       const { data: checkEmail } = await clientDB.from('clienti').select('email').eq('email', email);
       if (checkEmail && checkEmail.length > 0) {
         alert("Questa email è già registrata. Torna al login.");
@@ -192,12 +246,8 @@
         return;
       }
 
-      // 2. Crea il nuovo cliente (Listino 1 di default, codice Danea nullo)
       const { error } = await clientDB.from('clienti').insert([{
-        email: email,
-        password: psw,
-        ragione_sociale: ragSoc,
-        listino: 1
+        email: email, password: psw, ragione_sociale: ragSoc, listino: 1
       }]);
 
       if (error) {
@@ -206,13 +256,11 @@
       } else {
         alert("Account creato con successo! Ora puoi accedere.");
         mostraLogin();
-        // Precompila l'email nel login per comodità
         document.getElementById('login-email').value = email;
         btn.innerText = "Crea Account"; btn.disabled = false;
       }
     }
 
-    // --- LOGIN ---
     async function eseguiLogin() {
       const email = document.getElementById('login-email').value.trim();
       const psw = document.getElementById('login-password').value.trim();
@@ -234,7 +282,6 @@
         document.getElementById('app-section').style.display = 'block';  
         document.getElementById('nome-cliente-display').innerText = `${utenteLoggato.ragione_sociale} (Listino ${utenteLoggato.listino})`; 
         
-        // Popola i dati nel pannello Profilo
         document.getElementById('prof-ragione').value = utenteLoggato.ragione_sociale;
         document.getElementById('prof-email').value = utenteLoggato.email;
 
@@ -242,7 +289,6 @@
       }
     }
 
-    // --- AGGIORNA PASSWORD ---
     async function salvaNuovaPassword() {
       const nuovaPsw = document.getElementById('prof-nuova-psw').value.trim();
       if(nuovaPsw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
@@ -259,12 +305,11 @@
       }
     }
 
-    // --- RESTO DEL CODICE CATALOGO E CARRELLO (Invariato) ---
     async function caricaCatalogo() {
       let { data: prodotti, error } = await clientDB.from('prodotti').select('*');
-      if (error) { document.getElementById('app').innerHTML = `<p class="text-danger">Errore di comunicazione.</p>`; return; }
+      if (error) { document.getElementById('app').innerHTML = `<p class="text-danger fw-bold">Errore di comunicazione col server.</p>`; return; }
       const app = document.getElementById('app');
-      if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-warning">Nessun articolo a catalogo.</p>`; return; }
+      if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-orange fw-bold">Nessun articolo a catalogo.</p>`; return; }
 
       tuttiProdotti = prodotti;
       popolaFiltri(tuttiProdotti); 
@@ -298,7 +343,7 @@
 
     function disegnaProdotti(prodotti) {
       const app = document.getElementById('app');
-      if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-warning mt-4">Nessun prodotto trovato.</p>`; return; }
+      if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-muted mt-4 fw-bold">Nessun prodotto trovato per questa selezione.</p>`; return; }
       let html = '';
       prodotti.forEach(p => {
         const cod = p['Cod.']; if(!cod) return; 
@@ -314,22 +359,22 @@
         const ivaRaw = p['Cod. Iva'];
         const iva = ivaRaw ? parseFloat(ivaRaw.toString().replace('%','').trim()) : 22; 
         const safeDesc = desc.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        const catText = p['Categoria'] ? `<span class="badge bg-secondary mb-2">${p['Categoria']}</span>` : '';
+        const catText = p['Categoria'] ? `<span class="badge bg-bordeaux mb-2 bg-opacity-75">${p['Categoria']}</span>` : '';
 
         html += `
           <div class="col-lg-3 col-md-4 col-sm-6 product-card text-start">
-            <div class="card border-0 shadow-sm h-100">
-              <div style="height: 180px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 10px;">
+            <div class="card shadow-sm h-100">
+              <div style="height: 180px; background: #fff; border-radius: 10px 10px 0 0; display: flex; align-items: center; justify-content: center; padding: 15px;">
                 <img src="${imgUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Immagine+non+disponibile';" style="max-height: 100%; max-width: 100%; object-fit: contain;">
               </div>
-              <div class="card-body d-flex flex-column bg-light border-top">
-                ${catText}
-                <h6 class="card-title fw-bold" style="font-size: 0.95rem;" title="${desc}">${desc}</h6>
-                <p class="text-muted mb-2" style="font-size: 0.8rem;">Cod. ${cod}</p>
-                <h5 class="text-dark fw-bold mb-3">€ ${prezzo.toFixed(2).replace('.', ',')}</h5>
-                <div class="mt-auto input-group">
-                  <input type="number" class="form-control text-center bg-white" value="1" min="1" id="qty_${cod}">
-                  <button class="btn btn-outline-dark fw-bold" onclick="addToCart('${cod}', '${safeDesc}', ${prezzo}, ${iva})">Aggiungi</button>
+              <div class="card-body d-flex flex-column bg-white border-top">
+                <div>${catText}</div>
+                <h6 class="card-title fw-bold text-dark" style="font-size: 0.95rem; line-height: 1.3;" title="${desc}">${desc}</h6>
+                <p class="text-muted mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">COD. ${cod}</p>
+                <h4 class="text-orange fw-bold mb-3 mt-auto">€ ${prezzo.toFixed(2).replace('.', ',')}</h4>
+                <div class="input-group mt-auto">
+                  <input type="number" class="form-control text-center fw-bold text-secondary" value="1" min="1" id="qty_${cod}">
+                  <button class="btn btn-outline-bordeaux" onclick="addToCart('${cod}', '${safeDesc}', ${prezzo}, ${iva})">Aggiungi</button>
                 </div>
               </div>
             </div>
@@ -357,8 +402,15 @@
         totalLordo += rigaLordo; totalNetto += rigaNetto; countPezzi += item.qta;
         cartHtml += `
           <div class="cart-item d-flex justify-content-between align-items-center">
-            <div style="max-width: 70%;"><h6 class="mb-0 text-dark fw-bold" style="font-size: 0.9rem;">${item.desc}</h6><small class="text-muted">${item.qta} pz x € ${item.prezzo.toFixed(2).replace('.', ',')}</small></div>
-            <div class="text-end"><div class="fw-bold text-dark">€ ${rigaLordo.toFixed(2).replace('.', ',')}</div><button class="btn btn-sm btn-link text-danger p-0 text-decoration-none" style="font-size: 0.8rem;" onclick="rimuoviDalCarrello('${item.codice}')">Rimuovi</button></div>
+            <div style="max-width: 65%;">
+              <h6 class="mb-1 text-dark fw-bold" style="font-size: 0.85rem; line-height: 1.2;">${item.desc}</h6>
+              <span class="badge bg-light text-dark border">${item.qta} pz</span> 
+              <small class="text-muted ms-1">x € ${item.prezzo.toFixed(2).replace('.', ',')}</small>
+            </div>
+            <div class="text-end">
+              <div class="fw-bold text-bordeaux mb-1">€ ${rigaLordo.toFixed(2).replace('.', ',')}</div>
+              <button class="btn btn-sm btn-light text-danger py-0 px-2 fw-bold" style="font-size: 0.75rem;" onclick="rimuoviDalCarrello('${item.codice}')">Rimuovi</button>
+            </div>
           </div>`;
       }
       let totaleIva = totalLordo - totalNetto;
@@ -381,10 +433,10 @@
       const dataDanea = oggi.getFullYear() + '-' + ('0' + (oggi.getMonth() + 1)).slice(-2) + '-' + ('0' + oggi.getDate()).slice(-2);
 
       const { error: errorTestata } = await clientDB.from('ordini_testata').insert([
-        { id_ordine: orderId, data: dataDanea, cliente_ragione_sociale: utenteLoggato.ragione_sociale, cliente_codice_danea: utenteLoggato.codice_danea || "" } // <-- Permettiamo codici vuoti per i nuovi!
+        { id_ordine: orderId, data: dataDanea, cliente_ragione_sociale: utenteLoggato.ragione_sociale, cliente_codice_danea: utenteLoggato.codice_danea || "" }
       ]);
 
-      if (errorTestata) { alert("Errore creazione testata ordine."); btn.innerHTML = "Conferma Ordine"; btn.disabled = false; return; }
+      if (errorTestata) { alert("Errore creazione testata ordine."); btn.innerHTML = "🚀 Conferma Ordine"; btn.disabled = false; return; }
 
       const righeDettaglio = items.map(item => ({ id_ordine: orderId, codice_articolo: item.codice, quantita: item.qta, prezzo_unitario: item.prezzo }));
       const { error: errorDettaglio } = await clientDB.from('ordini_dettaglio').insert(righeDettaglio);
@@ -392,12 +444,24 @@
       if (errorDettaglio) {
         alert("Errore inserimento righe ordine.");
       } else {
-        alert("Ordine registrato con successo!");
+        alert("Ordine registrato con successo! 🎉");
         cart = {}; aggiornaInterfacciaCarrello(); 
         var myOffcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas'));
         if(myOffcanvas) myOffcanvas.hide();
       }
-      btn.innerHTML = "Conferma Ordine"; btn.disabled = false;
+      btn.innerHTML = "🚀 Conferma Ordine"; btn.disabled = false;
+    }
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+          console.log('PWA Service Worker registrato con successo.', reg);
+        }).catch(err => {
+          console.warn('Registrazione Service Worker fallita:', err);
+        });
+      });
     }
   </script>
 </body>
