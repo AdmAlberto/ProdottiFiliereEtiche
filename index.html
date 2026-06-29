@@ -13,16 +13,16 @@
     body { background-color: #f8f9fa; padding-bottom: 100px; }
     .product-card { margin-bottom: 20px; }
     .cart-sticky { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
-    #login-section { height: 100vh; display: flex; align-items: center; justify-content: center; }
-    .login-card { width: 100%; max-width: 400px; padding: 2.5rem; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background: white; }
+    .center-screen { height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+    .auth-card { width: 100%; max-width: 400px; padding: 2.5rem; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background: white; }
     .cart-item { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
     .riepilogo-riga { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 5px; color: #6c757d; }
   </style>
 </head>
 <body>
 
-  <div id="login-section">
-    <div class="login-card text-center">
+  <div id="login-section" class="center-screen">
+    <div class="auth-card text-center">
       <h4 class="mb-4 fw-bold text-secondary">Filiere Etiche ADM</h4>
       <p class="text-muted mb-4">Area Riservata B2B</p>
       <div class="mb-3 text-start">
@@ -35,6 +35,31 @@
       </div>
       <button class="btn btn-dark w-100 fw-bold py-2" onclick="eseguiLogin()" id="btn-login">Accedi al Portale</button>
       <p id="login-error" class="text-danger mt-3 mb-0" style="display:none;">Credenziali non valide. Riprovare.</p>
+      
+      <hr class="mt-4 mb-3">
+      <p class="small text-muted mb-0">Sei un nuovo cliente? <a href="#" onclick="mostraRegistrazione()" class="text-dark fw-bold">Registrati ora</a></p>
+    </div>
+  </div>
+
+  <div id="register-section" class="center-screen" style="display: none;">
+    <div class="auth-card text-center">
+      <h4 class="mb-4 fw-bold text-secondary">Nuovo Account B2B</h4>
+      <div class="mb-3 text-start">
+        <label class="form-label text-muted small">Ragione Sociale (o Nome)</label>
+        <input type="text" id="reg-ragionesociale" class="form-control" placeholder="es. Mario Rossi SRL">
+      </div>
+      <div class="mb-3 text-start">
+        <label class="form-label text-muted small">Indirizzo Email</label>
+        <input type="email" id="reg-email" class="form-control" placeholder="es. mario@azienda.it">
+      </div>
+      <div class="mb-4 text-start">
+        <label class="form-label text-muted small">Scegli una Password</label>
+        <input type="password" id="reg-password" class="form-control" placeholder="Minimo 6 caratteri">
+      </div>
+      <button class="btn btn-success w-100 fw-bold py-2" onclick="eseguiRegistrazione()" id="btn-register">Crea Account</button>
+      
+      <hr class="mt-4 mb-3">
+      <p class="small text-muted mb-0">Hai già un account? <a href="#" onclick="mostraLogin()" class="text-dark fw-bold">Torna al Login</a></p>
     </div>
   </div>
 
@@ -42,7 +67,11 @@
     <div class="container mt-4">
       <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
         <h3 class="text-secondary fw-bold">Catalogo Prodotti</h3>
-        <span class="badge bg-dark fs-6 px-3 py-2" id="nome-cliente-display"></span>
+        
+        <div>
+          <span class="badge bg-dark fs-6 px-3 py-2 me-2" id="nome-cliente-display"></span>
+          <button class="btn btn-outline-secondary btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#profiloModal">⚙️ Profilo</button>
+        </div>
       </div>
       
       <div class="row mb-4" id="filtri-section" style="display: none;">
@@ -75,33 +104,50 @@
     </div>
   </div>
 
-  <div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel">
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas">
     <div class="offcanvas-header border-bottom bg-light">
-      <h5 class="offcanvas-title fw-bold text-secondary" id="cartOffcanvasLabel">Riepilogo Ordine</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Chiudi"></button>
+      <h5 class="offcanvas-title fw-bold text-secondary">Riepilogo Ordine</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body d-flex flex-column">
       <div id="cart-items-container" class="flex-grow-1 overflow-auto">
         <p class="text-muted text-center mt-5">Nessun articolo selezionato.</p>
       </div>
-      
       <div class="border-top pt-3 mt-3 bg-white">
-        <div class="riepilogo-riga">
-          <span>Imponibile:</span>
-          <span id="cart-imponibile">€ 0.00</span>
-        </div>
-        <div class="riepilogo-riga border-bottom pb-2 mb-2">
-          <span>Totale IVA:</span>
-          <span id="cart-iva">€ 0.00</span>
-        </div>
+        <div class="riepilogo-riga"><span>Imponibile:</span><span id="cart-imponibile">€ 0.00</span></div>
+        <div class="riepilogo-riga border-bottom pb-2 mb-2"><span>Totale IVA:</span><span id="cart-iva">€ 0.00</span></div>
         <div class="d-flex justify-content-between mb-3 align-items-center">
           <span class="fw-bold fs-6 text-dark text-uppercase">Totale (Ivato):</span>
           <span class="fw-bold fs-4 text-dark" id="cart-offcanvas-total">€ 0.00</span>
         </div>
+        <button id="btn-checkout" class="btn btn-success btn-lg w-100 fw-bold py-3" onclick="inviaOrdine()">Conferma Ordine</button>
+      </div>
+    </div>
+  </div>
 
-        <button id="btn-checkout" class="btn btn-success btn-lg w-100 fw-bold py-3" onclick="inviaOrdine()">
-          Conferma Ordine
-        </button>
+  <div class="modal fade" id="profiloModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title fw-bold text-secondary">Il tuo Profilo B2B</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="text-muted small">Ragione Sociale</label>
+            <input type="text" class="form-control bg-light" id="prof-ragione" readonly>
+          </div>
+          <div class="mb-4">
+            <label class="text-muted small">Email (Username)</label>
+            <input type="text" class="form-control bg-light" id="prof-email" readonly>
+          </div>
+          <hr>
+          <h6 class="fw-bold mb-3">Cambia Password</h6>
+          <div class="mb-2">
+            <input type="password" class="form-control" id="prof-nuova-psw" placeholder="Nuova password">
+          </div>
+          <button class="btn btn-outline-dark btn-sm fw-bold w-100" onclick="salvaNuovaPassword()">Aggiorna Password</button>
+        </div>
       </div>
     </div>
   </div>
@@ -113,8 +159,60 @@
 
     let cart = {}; 
     let utenteLoggato = null; 
-    let tuttiProdotti = []; // Salviamo i prodotti globalmente per filtrarli velocemente
+    let tuttiProdotti = []; 
 
+    // --- NAVIGAZIONE SCHERMATE INIZIALI ---
+    function mostraRegistrazione() {
+      document.getElementById('login-section').style.display = 'none';
+      document.getElementById('register-section').style.display = 'flex';
+    }
+    
+    function mostraLogin() {
+      document.getElementById('register-section').style.display = 'none';
+      document.getElementById('login-section').style.display = 'flex';
+    }
+
+    // --- REGISTRAZIONE NUOVO CLIENTE ---
+    async function eseguiRegistrazione() {
+      const ragSoc = document.getElementById('reg-ragionesociale').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const psw = document.getElementById('reg-password').value.trim();
+      const btn = document.getElementById('btn-register');
+
+      if(!ragSoc || !email || !psw) return alert("Compila tutti i campi!");
+      if(psw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
+
+      btn.innerText = "Creazione in corso..."; btn.disabled = true;
+
+      // 1. Controlla se l'email esiste già
+      const { data: checkEmail } = await clientDB.from('clienti').select('email').eq('email', email);
+      if (checkEmail && checkEmail.length > 0) {
+        alert("Questa email è già registrata. Torna al login.");
+        btn.innerText = "Crea Account"; btn.disabled = false;
+        return;
+      }
+
+      // 2. Crea il nuovo cliente (Listino 1 di default, codice Danea nullo)
+      const { error } = await clientDB.from('clienti').insert([{
+        email: email,
+        password: psw,
+        ragione_sociale: ragSoc,
+        listino: 1
+      }]);
+
+      if (error) {
+        alert("Errore durante la registrazione: " + error.message);
+        btn.innerText = "Crea Account"; btn.disabled = false;
+      } else {
+        alert("Account creato con successo! Ora puoi accedere.");
+        mostraLogin();
+        // Precompila l'email nel login per comodità
+        document.getElementById('login-email').value = email;
+        btn.innerText = "Crea Account"; btn.disabled = false;
+      }
+    }
+
+    // --- LOGIN ---
     async function eseguiLogin() {
       const email = document.getElementById('login-email').value.trim();
       const psw = document.getElementById('login-password').value.trim();
@@ -136,71 +234,71 @@
         document.getElementById('app-section').style.display = 'block';  
         document.getElementById('nome-cliente-display').innerText = `${utenteLoggato.ragione_sociale} (Listino ${utenteLoggato.listino})`; 
         
+        // Popola i dati nel pannello Profilo
+        document.getElementById('prof-ragione').value = utenteLoggato.ragione_sociale;
+        document.getElementById('prof-email').value = utenteLoggato.email;
+
         caricaCatalogo();
       }
     }
 
-    async function caricaCatalogo() {
-      let { data: prodotti, error } = await clientDB.from('prodotti').select('*');
-      if (error) { document.getElementById('app').innerHTML = `<p class="text-danger">Errore di comunicazione con il server.</p>`; return; }
-      
-      const app = document.getElementById('app');
-      if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-warning">Nessun articolo disponibile a catalogo.</p>`; return; }
+    // --- AGGIORNA PASSWORD ---
+    async function salvaNuovaPassword() {
+      const nuovaPsw = document.getElementById('prof-nuova-psw').value.trim();
+      if(nuovaPsw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
 
-      tuttiProdotti = prodotti; // Memorizza i prodotti
+      const { error } = await clientDB.from('clienti').update({ password: nuovaPsw }).eq('id', utenteLoggato.id);
       
-      popolaFiltri(tuttiProdotti); // Estrae categorie e sottocategorie
-      document.getElementById('filtri-section').style.display = 'flex'; // Mostra i filtri
-      
-      disegnaProdotti(tuttiProdotti); // Disegna tutto la prima volta
+      if (error) {
+        alert("Errore aggiornamento password.");
+      } else {
+        alert("Password aggiornata con successo!");
+        document.getElementById('prof-nuova-psw').value = '';
+        var myModal = bootstrap.Modal.getInstance(document.getElementById('profiloModal'));
+        if(myModal) myModal.hide();
+      }
     }
 
-    // Estrae e popola i menù a tendina in modo dinamico
+    // --- RESTO DEL CODICE CATALOGO E CARRELLO (Invariato) ---
+    async function caricaCatalogo() {
+      let { data: prodotti, error } = await clientDB.from('prodotti').select('*');
+      if (error) { document.getElementById('app').innerHTML = `<p class="text-danger">Errore di comunicazione.</p>`; return; }
+      const app = document.getElementById('app');
+      if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-warning">Nessun articolo a catalogo.</p>`; return; }
+
+      tuttiProdotti = prodotti;
+      popolaFiltri(tuttiProdotti); 
+      document.getElementById('filtri-section').style.display = 'flex'; 
+      disegnaProdotti(tuttiProdotti);
+    }
+
     function popolaFiltri(prodotti) {
       const setCategorie = new Set();
       const setSottocategorie = new Set();
-
       prodotti.forEach(p => {
         if (p['Categoria'] && p['Categoria'].trim() !== '') setCategorie.add(p['Categoria'].trim());
         if (p['Sottocategoria'] && p['Sottocategoria'].trim() !== '') setSottocategorie.add(p['Sottocategoria'].trim());
       });
-
       const catSelect = document.getElementById('filtro-categoria');
       const subcatSelect = document.getElementById('filtro-sottocategoria');
-
       catSelect.innerHTML = '<option value="">Tutte le Categorie</option>';
       subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
-
-      // Ordina alfabeticamente e aggiungi alle tendine
       [...setCategorie].sort().forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
       [...setSottocategorie].sort().forEach(s => subcatSelect.innerHTML += `<option value="${s}">${s}</option>`);
     }
 
-    // Filtra i prodotti mostrati quando si cambia il menù a tendina
     function applicaFiltri() {
       const catSelezionata = document.getElementById('filtro-categoria').value;
       const subcatSelezionata = document.getElementById('filtro-sottocategoria').value;
-
       let prodottiFiltrati = tuttiProdotti;
-
-      if (catSelezionata !== "") {
-        prodottiFiltrati = prodottiFiltrati.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
-      }
-      
-      if (subcatSelezionata !== "") {
-        prodottiFiltrati = prodottiFiltrati.filter(p => p['Sottocategoria'] && p['Sottocategoria'].trim() === subcatSelezionata);
-      }
-
+      if (catSelezionata !== "") prodottiFiltrati = prodottiFiltrati.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
+      if (subcatSelezionata !== "") prodottiFiltrati = prodottiFiltrati.filter(p => p['Sottocategoria'] && p['Sottocategoria'].trim() === subcatSelezionata);
       disegnaProdotti(prodottiFiltrati);
     }
 
     function disegnaProdotti(prodotti) {
       const app = document.getElementById('app');
-      if (!prodotti || prodotti.length === 0) {
-        app.innerHTML = `<p class="text-warning mt-4">Nessun prodotto trovato per questa selezione.</p>`;
-        return;
-      }
-
+      if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-warning mt-4">Nessun prodotto trovato.</p>`; return; }
       let html = '';
       prodotti.forEach(p => {
         const cod = p['Cod.']; if(!cod) return; 
@@ -209,22 +307,19 @@
         
         const listinoUtente = utenteLoggato.listino;
         const nomeColonnaPrezzo = `Listino ${listinoUtente} (ivato)`;
-        
         let rawPrice = p[nomeColonnaPrezzo];
         if (!rawPrice) { rawPrice = p['Listino 1 (ivato)'] || "0"; }
-        
         const prezzo = parseFloat(rawPrice.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
         
         const ivaRaw = p['Cod. Iva'];
         const iva = ivaRaw ? parseFloat(ivaRaw.toString().replace('%','').trim()) : 22; 
         const safeDesc = desc.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        
         const catText = p['Categoria'] ? `<span class="badge bg-secondary mb-2">${p['Categoria']}</span>` : '';
 
         html += `
           <div class="col-lg-3 col-md-4 col-sm-6 product-card text-start">
             <div class="card border-0 shadow-sm h-100">
-              <div style="height: 180px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 10px; position: relative;">
+              <div style="height: 180px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 10px;">
                 <img src="${imgUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Immagine+non+disponibile';" style="max-height: 100%; max-width: 100%; object-fit: contain;">
               </div>
               <div class="card-body d-flex flex-column bg-light border-top">
@@ -249,61 +344,35 @@
       if (qta > 0) {
         if(cart[codice]) cart[codice].qta += qta;
         else cart[codice] = { codice, desc, prezzo, qta, iva };
-        aggiornaInterfacciaCarrello();
-        qtyInput.value = 1; 
+        aggiornaInterfacciaCarrello(); qtyInput.value = 1; 
       }
     }
 
-    function rimuoviDalCarrello(codice) {
-      delete cart[codice];
-      aggiornaInterfacciaCarrello();
-    }
+    function rimuoviDalCarrello(codice) { delete cart[codice]; aggiornaInterfacciaCarrello(); }
 
     function aggiornaInterfacciaCarrello() {
       let totalLordo = 0; let totalNetto = 0; let countPezzi = 0; let cartHtml = '';
-
       for (let key in cart) {
-        let item = cart[key];
-        let rigaLordo = item.prezzo * item.qta;
-        let aliquota = item.iva / 100;
-        let rigaNetto = rigaLordo / (1 + aliquota);
-
+        let item = cart[key]; let rigaLordo = item.prezzo * item.qta; let rigaNetto = rigaLordo / (1 + (item.iva / 100));
         totalLordo += rigaLordo; totalNetto += rigaNetto; countPezzi += item.qta;
-        
         cartHtml += `
           <div class="cart-item d-flex justify-content-between align-items-center">
-            <div style="max-width: 70%;">
-              <h6 class="mb-0 text-dark fw-bold" style="font-size: 0.9rem;" title="${item.desc}">${item.desc}</h6>
-              <small class="text-muted">${item.qta} pz x € ${item.prezzo.toFixed(2).replace('.', ',')}</small>
-            </div>
-            <div class="text-end">
-              <div class="fw-bold text-dark">€ ${rigaLordo.toFixed(2).replace('.', ',')}</div>
-              <button class="btn btn-sm btn-link text-danger p-0 text-decoration-none" style="font-size: 0.8rem;" onclick="rimuoviDalCarrello('${item.codice}')">Rimuovi</button>
-            </div>
-          </div>
-        `;
+            <div style="max-width: 70%;"><h6 class="mb-0 text-dark fw-bold" style="font-size: 0.9rem;">${item.desc}</h6><small class="text-muted">${item.qta} pz x € ${item.prezzo.toFixed(2).replace('.', ',')}</small></div>
+            <div class="text-end"><div class="fw-bold text-dark">€ ${rigaLordo.toFixed(2).replace('.', ',')}</div><button class="btn btn-sm btn-link text-danger p-0 text-decoration-none" style="font-size: 0.8rem;" onclick="rimuoviDalCarrello('${item.codice}')">Rimuovi</button></div>
+          </div>`;
       }
-
       let totaleIva = totalLordo - totalNetto;
-
       document.getElementById('cart-total-bar').innerText = `€ ${totalLordo.toFixed(2).replace('.', ',')}`;
       document.getElementById('cart-offcanvas-total').innerText = `€ ${totalLordo.toFixed(2).replace('.', ',')}`;
       document.getElementById('cart-imponibile').innerText = `€ ${totalNetto.toFixed(2).replace('.', ',')}`;
       document.getElementById('cart-iva').innerText = `€ ${totaleIva.toFixed(2).replace('.', ',')}`;
       document.getElementById('cart-badge').innerText = countPezzi;
-
-      const container = document.getElementById('cart-items-container');
-      if (countPezzi === 0) {
-        container.innerHTML = `<p class="text-muted text-center mt-5">Nessun articolo selezionato.</p>`;
-      } else {
-        container.innerHTML = cartHtml;
-      }
+      document.getElementById('cart-items-container').innerHTML = countPezzi === 0 ? `<p class="text-muted text-center mt-5">Nessun articolo selezionato.</p>` : cartHtml;
     }
 
     async function inviaOrdine() {
       const items = Object.values(cart);
       if (items.length === 0) return alert("Attenzione: Impossibile inviare un ordine vuoto.");
-
       const btn = document.getElementById('btn-checkout');
       btn.innerHTML = "Elaborazione in corso..."; btn.disabled = true;
 
@@ -312,30 +381,22 @@
       const dataDanea = oggi.getFullYear() + '-' + ('0' + (oggi.getMonth() + 1)).slice(-2) + '-' + ('0' + oggi.getDate()).slice(-2);
 
       const { error: errorTestata } = await clientDB.from('ordini_testata').insert([
-        { id_ordine: orderId, data: dataDanea, cliente_ragione_sociale: utenteLoggato.ragione_sociale, cliente_codice_danea: utenteLoggato.codice_danea }
+        { id_ordine: orderId, data: dataDanea, cliente_ragione_sociale: utenteLoggato.ragione_sociale, cliente_codice_danea: utenteLoggato.codice_danea || "" } // <-- Permettiamo codici vuoti per i nuovi!
       ]);
 
-      if (errorTestata) {
-        alert("Si è verificato un errore durante la creazione della testata ordine.");
-        btn.innerHTML = "Conferma Ordine"; btn.disabled = false; return;
-      }
+      if (errorTestata) { alert("Errore creazione testata ordine."); btn.innerHTML = "Conferma Ordine"; btn.disabled = false; return; }
 
-      const righeDettaglio = items.map(item => ({
-        id_ordine: orderId, codice_articolo: item.codice, quantita: item.qta, prezzo_unitario: item.prezzo
-      }));
-
+      const righeDettaglio = items.map(item => ({ id_ordine: orderId, codice_articolo: item.codice, quantita: item.qta, prezzo_unitario: item.prezzo }));
       const { error: errorDettaglio } = await clientDB.from('ordini_dettaglio').insert(righeDettaglio);
 
       if (errorDettaglio) {
-        alert("Si è verificato un errore durante l'inserimento delle righe ordine.");
+        alert("Errore inserimento righe ordine.");
       } else {
-        alert("Ordine registrato con successo. Riceverà a breve conferma dell'elaborazione.");
-        cart = {}; 
-        aggiornaInterfacciaCarrello(); 
+        alert("Ordine registrato con successo!");
+        cart = {}; aggiornaInterfacciaCarrello(); 
         var myOffcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas'));
         if(myOffcanvas) myOffcanvas.hide();
       }
-
       btn.innerHTML = "Conferma Ordine"; btn.disabled = false;
     }
   </script>
