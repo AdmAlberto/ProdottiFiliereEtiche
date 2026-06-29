@@ -1,0 +1,16 @@
+{
+  "name": "Filiere Etiche ADM",
+  "short_name": "ADM Ordini",
+  "description": "Portale Ordini B2B",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8f9fa",
+  "theme_color": "#212529",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
