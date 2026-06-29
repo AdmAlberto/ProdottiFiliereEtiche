@@ -45,6 +45,19 @@
         <span class="badge bg-dark fs-6 px-3 py-2" id="nome-cliente-display"></span>
       </div>
       
+      <div class="row mb-4" id="filtri-section" style="display: none;">
+        <div class="col-md-6 mb-2">
+          <select id="filtro-categoria" class="form-select border-secondary shadow-sm" onchange="applicaFiltri()">
+            <option value="">Tutte le Categorie</option>
+          </select>
+        </div>
+        <div class="col-md-6 mb-2">
+          <select id="filtro-sottocategoria" class="form-select border-secondary shadow-sm" onchange="applicaFiltri()">
+            <option value="">Tutte le Sottocategorie</option>
+          </select>
+        </div>
+      </div>
+      
       <div id="app" class="row text-center py-5">
         <div class="spinner-border text-secondary mx-auto" role="status"></div>
         <p class="text-muted mt-3">Sincronizzazione catalogo in corso...</p>
@@ -68,7 +81,6 @@
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Chiudi"></button>
     </div>
     <div class="offcanvas-body d-flex flex-column">
-      
       <div id="cart-items-container" class="flex-grow-1 overflow-auto">
         <p class="text-muted text-center mt-5">Nessun articolo selezionato.</p>
       </div>
@@ -101,6 +113,7 @@
 
     let cart = {}; 
     let utenteLoggato = null; 
+    let tuttiProdotti = []; // Salviamo i prodotti globalmente per filtrarli velocemente
 
     async function eseguiLogin() {
       const email = document.getElementById('login-email').value.trim();
@@ -117,14 +130,10 @@
         errorMsg.style.display = 'block'; btn.innerText = "Accedi al Portale"; btn.disabled = false;
       } else {
         utenteLoggato = data; 
-        
-        // Se il cliente non ha un listino assegnato, impostiamo l'1 di default
         if (!utenteLoggato.listino) utenteLoggato.listino = 1;
 
         document.getElementById('login-section').style.display = 'none'; 
         document.getElementById('app-section').style.display = 'block';  
-        
-        // Mostriamo il nome cliente e il suo listino nel badge in alto
         document.getElementById('nome-cliente-display').innerText = `${utenteLoggato.ragione_sociale} (Listino ${utenteLoggato.listino})`; 
         
         caricaCatalogo();
@@ -138,35 +147,88 @@
       const app = document.getElementById('app');
       if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-warning">Nessun articolo disponibile a catalogo.</p>`; return; }
 
+      tuttiProdotti = prodotti; // Memorizza i prodotti
+      
+      popolaFiltri(tuttiProdotti); // Estrae categorie e sottocategorie
+      document.getElementById('filtri-section').style.display = 'flex'; // Mostra i filtri
+      
+      disegnaProdotti(tuttiProdotti); // Disegna tutto la prima volta
+    }
+
+    // Estrae e popola i menù a tendina in modo dinamico
+    function popolaFiltri(prodotti) {
+      const setCategorie = new Set();
+      const setSottocategorie = new Set();
+
+      prodotti.forEach(p => {
+        if (p['Categoria'] && p['Categoria'].trim() !== '') setCategorie.add(p['Categoria'].trim());
+        if (p['Sottocategoria'] && p['Sottocategoria'].trim() !== '') setSottocategorie.add(p['Sottocategoria'].trim());
+      });
+
+      const catSelect = document.getElementById('filtro-categoria');
+      const subcatSelect = document.getElementById('filtro-sottocategoria');
+
+      catSelect.innerHTML = '<option value="">Tutte le Categorie</option>';
+      subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
+
+      // Ordina alfabeticamente e aggiungi alle tendine
+      [...setCategorie].sort().forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
+      [...setSottocategorie].sort().forEach(s => subcatSelect.innerHTML += `<option value="${s}">${s}</option>`);
+    }
+
+    // Filtra i prodotti mostrati quando si cambia il menù a tendina
+    function applicaFiltri() {
+      const catSelezionata = document.getElementById('filtro-categoria').value;
+      const subcatSelezionata = document.getElementById('filtro-sottocategoria').value;
+
+      let prodottiFiltrati = tuttiProdotti;
+
+      if (catSelezionata !== "") {
+        prodottiFiltrati = prodottiFiltrati.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
+      }
+      
+      if (subcatSelezionata !== "") {
+        prodottiFiltrati = prodottiFiltrati.filter(p => p['Sottocategoria'] && p['Sottocategoria'].trim() === subcatSelezionata);
+      }
+
+      disegnaProdotti(prodottiFiltrati);
+    }
+
+    function disegnaProdotti(prodotti) {
+      const app = document.getElementById('app');
+      if (!prodotti || prodotti.length === 0) {
+        app.innerHTML = `<p class="text-warning mt-4">Nessun prodotto trovato per questa selezione.</p>`;
+        return;
+      }
+
       let html = '';
       prodotti.forEach(p => {
         const cod = p['Cod.']; if(!cod) return; 
         const desc = p['Descrizione'] || 'N/D';
         const imgUrl = 'https://plwzkcpujktjqznvwkzb.supabase.co/storage/v1/object/public/BIrre/' + cod + '.jpg';
         
-        // LOGICA MULTI-LISTINO
         const listinoUtente = utenteLoggato.listino;
         const nomeColonnaPrezzo = `Listino ${listinoUtente} (ivato)`;
         
-        // Cerca il prezzo nel listino specifico, se manca usa il Listino 1 come salvagente
         let rawPrice = p[nomeColonnaPrezzo];
-        if (!rawPrice) {
-          rawPrice = p['Listino 1 (ivato)'] || "0";
-        }
+        if (!rawPrice) { rawPrice = p['Listino 1 (ivato)'] || "0"; }
         
         const prezzo = parseFloat(rawPrice.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
         
         const ivaRaw = p['Cod. Iva'];
         const iva = ivaRaw ? parseFloat(ivaRaw.toString().replace('%','').trim()) : 22; 
         const safeDesc = desc.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        
+        const catText = p['Categoria'] ? `<span class="badge bg-secondary mb-2">${p['Categoria']}</span>` : '';
 
         html += `
           <div class="col-lg-3 col-md-4 col-sm-6 product-card text-start">
             <div class="card border-0 shadow-sm h-100">
-              <div style="height: 180px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 10px;">
+              <div style="height: 180px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 10px; position: relative;">
                 <img src="${imgUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Immagine+non+disponibile';" style="max-height: 100%; max-width: 100%; object-fit: contain;">
               </div>
               <div class="card-body d-flex flex-column bg-light border-top">
+                ${catText}
                 <h6 class="card-title fw-bold" style="font-size: 0.95rem;" title="${desc}">${desc}</h6>
                 <p class="text-muted mb-2" style="font-size: 0.8rem;">Cod. ${cod}</p>
                 <h5 class="text-dark fw-bold mb-3">€ ${prezzo.toFixed(2).replace('.', ',')}</h5>
@@ -198,10 +260,7 @@
     }
 
     function aggiornaInterfacciaCarrello() {
-      let totalLordo = 0; 
-      let totalNetto = 0;
-      let countPezzi = 0; 
-      let cartHtml = '';
+      let totalLordo = 0; let totalNetto = 0; let countPezzi = 0; let cartHtml = '';
 
       for (let key in cart) {
         let item = cart[key];
@@ -209,9 +268,7 @@
         let aliquota = item.iva / 100;
         let rigaNetto = rigaLordo / (1 + aliquota);
 
-        totalLordo += rigaLordo;
-        totalNetto += rigaNetto;
-        countPezzi += item.qta;
+        totalLordo += rigaLordo; totalNetto += rigaNetto; countPezzi += item.qta;
         
         cartHtml += `
           <div class="cart-item d-flex justify-content-between align-items-center">
@@ -248,8 +305,7 @@
       if (items.length === 0) return alert("Attenzione: Impossibile inviare un ordine vuoto.");
 
       const btn = document.getElementById('btn-checkout');
-      btn.innerHTML = "Elaborazione in corso...";
-      btn.disabled = true;
+      btn.innerHTML = "Elaborazione in corso..."; btn.disabled = true;
 
       const orderId = 'ORD-' + new Date().getTime();
       const oggi = new Date();
@@ -280,8 +336,7 @@
         if(myOffcanvas) myOffcanvas.hide();
       }
 
-      btn.innerHTML = "Conferma Ordine";
-      btn.disabled = false;
+      btn.innerHTML = "Conferma Ordine"; btn.disabled = false;
     }
   </script>
 </body>
