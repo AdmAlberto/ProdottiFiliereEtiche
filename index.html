@@ -20,15 +20,17 @@
       --bordeaux-dark: #5a1117;
       --orange: #e65c00;   
       --orange-hover: #cc5200;
-      --bg-color: #fffaf7; 
+      --bg-color: #fffaf7; /* Sfondo leggermente caldo */
     }
 
     body { background-color: var(--bg-color); padding-bottom: 100px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     
+    /* Classi di utilità per Colori */
     .text-bordeaux { color: var(--bordeaux) !important; }
     .text-orange { color: var(--orange) !important; }
     .bg-bordeaux { background-color: var(--bordeaux) !important; color: white; }
     
+    /* Pulsanti Personalizzati */
     .btn-bordeaux { background-color: var(--bordeaux); color: white; border: none; transition: 0.3s; }
     .btn-bordeaux:hover { background-color: var(--bordeaux-dark); color: white; }
     .btn-orange { background-color: var(--orange); color: white; border: none; transition: 0.3s; }
@@ -36,6 +38,7 @@
     .btn-outline-bordeaux { border: 2px solid var(--bordeaux); color: var(--bordeaux); font-weight: bold; transition: 0.3s; }
     .btn-outline-bordeaux:hover { background-color: var(--bordeaux); color: white; }
 
+    /* Schermate di Autenticazione */
     .center-screen { height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; }
     
     .auth-card { 
@@ -45,6 +48,7 @@
       border-top: 6px solid var(--bordeaux);
     }
     
+    /* Card Prodotti del Catalogo */
     .product-card { margin-bottom: 25px; }
     .product-card .card { 
       border: none; border-bottom: 4px solid var(--orange); 
@@ -55,12 +59,13 @@
       box-shadow: 0 12px 25px rgba(124, 26, 34, 0.15) !important; 
     }
     
-    /* Cursore a manina per indicare che la foto è cliccabile */
+    /* Interazioni elementi card cliccabili */
     .product-img-click { cursor: pointer; transition: opacity 0.2s; }
     .product-img-click:hover { opacity: 0.85; }
     .product-title-click { cursor: pointer; }
     .product-title-click:hover { color: var(--orange) !important; }
 
+    /* Barra Carrello sempre visibile in basso */
     .cart-sticky { 
       position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1000; 
       box-shadow: 0 -5px 20px rgba(0,0,0,0.08); 
@@ -205,7 +210,10 @@
           <div class="mb-3">
             <input type="password" class="form-control" id="prof-nuova-psw" placeholder="Inserisci la nuova password">
           </div>
-          <button class="btn btn-outline-bordeaux w-100 py-2" onclick="salvaNuovaPassword()">Aggiorna Password</button>
+          <button class="btn btn-outline-bordeaux w-100 py-2 mb-3" onclick="salvaNuovaPassword()">Aggiorna Password</button>
+          
+          <hr style="opacity: 0.1;">
+          <button class="btn btn-danger w-100 py-2 fw-bold" onclick="eseguiLogout()">🚪 Disconnetti Account</button>
         </div>
       </div>
     </div>
@@ -248,16 +256,18 @@
     let utenteLoggato = null; 
     let tuttiProdotti = []; 
 
+    // Navigazione Interfaccia Iniziale
     function mostraRegistrazione() {
       document.getElementById('login-section').style.display = 'none';
       document.getElementById('register-section').style.display = 'flex';
     }
     
-    function muestraLogin() {
+    function mostraLogin() {
       document.getElementById('register-section').style.display = 'none';
       document.getElementById('login-section').style.display = 'flex';
     }
 
+    // Creazione Nuovo Utente B2B
     async function eseguiRegistrazione() {
       const ragSoc = document.getElementById('reg-ragionesociale').value.trim();
       const email = document.getElementById('reg-email').value.trim();
@@ -291,6 +301,7 @@
       }
     }
 
+    // Accesso Utente B2B
     async function eseguiLogin() {
       const email = document.getElementById('login-email').value.trim();
       const psw = document.getElementById('login-password').value.trim();
@@ -319,6 +330,7 @@
       }
     }
 
+    // Cambio Password Autonomo
     async function salvaNuovaPassword() {
       const nuovaPsw = document.getElementById('prof-nuova-psw').value.trim();
       if(nuovaPsw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
@@ -335,6 +347,24 @@
       }
     }
 
+    // Sconnessione Utente (Logout Completo)
+    function eseguiLogout() {
+      var mioModal = bootstrap.Modal.getInstance(document.getElementById('profiloModal'));
+      if(mioModal) mioModal.hide();
+
+      utenteLoggato = null;
+      cart = {};
+      
+      document.getElementById('login-password').value = '';
+      document.getElementById('prof-nuova-psw').value = '';
+      
+      aggiornaInterfacciaCarrello();
+
+      document.getElementById('app-section').style.display = 'none';
+      document.getElementById('login-section').style.display = 'flex';
+    }
+
+    // Caricamento Articoli dal Database
     async function caricaCatalogo() {
       let { data: prodotti, error } = await clientDB.from('prodotti').select('*');
       if (error) { document.getElementById('app').innerHTML = `<p class="text-danger fw-bold">Errore di comunicazione col server.</p>`; return; }
@@ -347,6 +377,7 @@
       disegnaProdotti(tuttiProdotti);
     }
 
+    // Estrazione Dinamica dei Filtri Dropdown
     function popolaFiltri(prodotti) {
       const setCategorie = new Set();
       const setSottocategorie = new Set();
@@ -362,6 +393,7 @@
       [...setSottocategorie].sort().forEach(s => subcatSelect.innerHTML += `<option value="${s}">${s}</option>`);
     }
 
+    // Applicazione dei Filtri Selezionati
     function applicaFiltri() {
       const catSelezionata = document.getElementById('filtro-categoria').value;
       const subcatSelezionata = document.getElementById('filtro-sottocategoria').value;
@@ -371,6 +403,7 @@
       disegnaProdotti(prodottiFiltrati);
     }
 
+    // Rendering Grafico del Catalogo
     function disegnaProdotti(prodotti) {
       const app = document.getElementById('app');
       if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-muted mt-4 fw-bold">Nessun prodotto trovato per questa selezione.</p>`; return; }
@@ -391,7 +424,6 @@
         const safeDesc = desc.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         const catText = p['Categoria'] ? `<span class="badge bg-bordeaux mb-2 bg-opacity-75">${p['Categoria']}</span>` : '';
 
-        // Aggiungiamo un attributo data-index per ripescare l'articolo esatto al volo quando si clicca
         html += `
           <div class="col-lg-3 col-md-4 col-sm-6 product-card text-start">
             <div class="card shadow-sm h-100">
@@ -414,9 +446,8 @@
       app.innerHTML = html;
     }
 
-    // NUOVA FUNZIONE: APRE IL POPUP CON LA SCHEDA PRODOTTO DETTAGLIATA
+    // Apertura Dettaglio Scheda Prodotto
     function apriDettaglioProdotto(codice) {
-      // Troviamo il prodotto nell'array memorizzato all'avvio
       const prodotto = tuttiProdotti.find(p => p['Cod.'] === codice);
       if(!prodotto) return;
 
@@ -428,9 +459,7 @@
       if (!rawPrice) { rawPrice = prodotto['Listino 1 (ivato)'] || "0"; }
       const prezzo = parseFloat(rawPrice.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
 
-      // Popoliamo il Modal
       document.getElementById('modal-prod-img').src = imgUrl;
-      // Gestione del fallimento caricamento immagine anche nel modal
       document.getElementById('modal-prod-img').onerror = function() { this.src = 'https://via.placeholder.com/150?text=Immagine+non+disponibile'; };
       
       document.getElementById('modal-prod-title').innerText = desc;
@@ -438,15 +467,13 @@
       document.getElementById('modal-prod-price').innerText = `€ ${prezzo.toFixed(2).replace('.', ',')}`;
       document.getElementById('modal-prod-cat').innerText = prodotto['Categoria'] || 'Generico';
       
-      // Qui carichiamo la descrizione estesa (se Danea la fornisce, usiamo le Note o la colonna corrispondente)
-      // Se non c'è una descrizione lunga, lasciamo il nome del prodotto come riempitivo
       document.getElementById('modal-prod-desc').innerText = prodotto['Note'] || prodotto['Descrizione aggiuntiva'] || 'Nessuna descrizione tecnica aggiuntiva disponibile.';
 
-      // Mostriamo il Modal a schermo
       const mioModal = new bootstrap.Modal(document.getElementById('prodottoModal'));
       mioModal.show();
     }
 
+    // Aggiunta Elementi al Carrello
     function addToCart(codice, desc, prezzo, iva) {
       const qtyInput = document.getElementById(`qty_${codice}`);
       const qta = parseInt(qtyInput.value);
@@ -457,8 +484,10 @@
       }
     }
 
+    // Rimozione Elementi dal Carrello
     function rimuoviDalCarrello(codice) { delete cart[codice]; aggiornaInterfacciaCarrello(); }
 
+    // Ricalcolo Fiscale dell'Ordine (Scorporo IVA)
     function aggiornaInterfacciaCarrello() {
       let totalLordo = 0; let totalNetto = 0; let countPezzi = 0; let cartHtml = '';
       for (let key in cart) {
@@ -486,6 +515,7 @@
       document.getElementById('cart-items-container').innerHTML = countPezzi === 0 ? `<p class="text-muted text-center mt-5">Nessun articolo selezionato.</p>` : cartHtml;
     }
 
+    // Invio definitivo dell'Ordine a Supabase
     async function inviaOrdine() {
       const items = Object.values(cart);
       if (items.length === 0) return alert("Attenzione: Impossibile inviare un ordine vuoto.");
