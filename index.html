@@ -16,6 +16,7 @@
     #login-section { height: 100vh; display: flex; align-items: center; justify-content: center; }
     .login-card { width: 100%; max-width: 400px; padding: 2.5rem; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background: white; }
     .cart-item { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
+    .riepilogo-riga { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 5px; color: #6c757d; }
   </style>
 </head>
 <body>
@@ -73,10 +74,19 @@
       </div>
       
       <div class="border-top pt-3 mt-3 bg-white">
+        <div class="riepilogo-riga">
+          <span>Imponibile:</span>
+          <span id="cart-imponibile">€ 0.00</span>
+        </div>
+        <div class="riepilogo-riga border-bottom pb-2 mb-2">
+          <span>Totale IVA:</span>
+          <span id="cart-iva">€ 0.00</span>
+        </div>
         <div class="d-flex justify-content-between mb-3 align-items-center">
-          <span class="fw-bold fs-6 text-muted text-uppercase">Totale Ivato:</span>
+          <span class="fw-bold fs-6 text-dark text-uppercase">Totale (Ivato):</span>
           <span class="fw-bold fs-4 text-dark" id="cart-offcanvas-total">€ 0.00</span>
         </div>
+
         <button id="btn-checkout" class="btn btn-success btn-lg w-100 fw-bold py-3" onclick="inviaOrdine()">
           Conferma Ordine
         </button>
@@ -128,7 +138,11 @@
         const imgUrl = 'https://plwzkcpujktjqznvwkzb.supabase.co/storage/v1/object/public/BIrre/' + cod + '.jpg';
         let rawPrice = p['Listino 1 (ivato)'] || "0";
         const prezzo = parseFloat(rawPrice.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
-        const iva = p['Cod. Iva'] || 22; 
+        
+        // Estraiamo il valore numerico dell'IVA (es. "22" o 22)
+        const ivaRaw = p['Cod. Iva'];
+        const iva = ivaRaw ? parseFloat(ivaRaw.toString().replace('%','').trim()) : 22; 
+        
         const safeDesc = desc.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
         html += `
@@ -169,13 +183,22 @@
     }
 
     function aggiornaInterfacciaCarrello() {
-      let total = 0; let countPezzi = 0; let cartHtml = '';
+      let totalLordo = 0; 
+      let totalNetto = 0;
+      let countPezzi = 0; 
+      let cartHtml = '';
 
       for (let key in cart) {
         let item = cart[key];
-        total += item.prezzo * item.qta;
+        let rigaLordo = item.prezzo * item.qta;
+        
+        // Calcolo matematico per ricavare l'Imponibile dal Lordo (Lordo / 1.XX)
+        let aliquota = item.iva / 100;
+        let rigaNetto = rigaLordo / (1 + aliquota);
+
+        totalLordo += rigaLordo;
+        totalNetto += rigaNetto;
         countPezzi += item.qta;
-        let prezzoRiga = (item.prezzo * item.qta).toFixed(2).replace('.', ',');
         
         cartHtml += `
           <div class="cart-item d-flex justify-content-between align-items-center">
@@ -184,16 +207,20 @@
               <small class="text-muted">${item.qta} pz x € ${item.prezzo.toFixed(2).replace('.', ',')}</small>
             </div>
             <div class="text-end">
-              <div class="fw-bold text-dark">€ ${prezzoRiga}</div>
+              <div class="fw-bold text-dark">€ ${rigaLordo.toFixed(2).replace('.', ',')}</div>
               <button class="btn btn-sm btn-link text-danger p-0 text-decoration-none" style="font-size: 0.8rem;" onclick="rimuoviDalCarrello('${item.codice}')">Rimuovi</button>
             </div>
           </div>
         `;
       }
 
-      let testoSoldi = `€ ${total.toFixed(2).replace('.', ',')}`;
-      document.getElementById('cart-total-bar').innerText = testoSoldi;
-      document.getElementById('cart-offcanvas-total').innerText = testoSoldi;
+      let totaleIva = totalLordo - totalNetto;
+
+      // Aggiornamento dei testi nell'interfaccia
+      document.getElementById('cart-total-bar').innerText = `€ ${totalLordo.toFixed(2).replace('.', ',')}`;
+      document.getElementById('cart-offcanvas-total').innerText = `€ ${totalLordo.toFixed(2).replace('.', ',')}`;
+      document.getElementById('cart-imponibile').innerText = `€ ${totalNetto.toFixed(2).replace('.', ',')}`;
+      document.getElementById('cart-iva').innerText = `€ ${totaleIva.toFixed(2).replace('.', ',')}`;
       document.getElementById('cart-badge').innerText = countPezzi;
 
       const container = document.getElementById('cart-items-container');
