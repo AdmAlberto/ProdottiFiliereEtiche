@@ -358,7 +358,6 @@
       document.getElementById('login-password').value = '';
       document.getElementById('prof-nuova-psw').value = '';
       
-      // FIX: Risvegliamo il pulsante di login riportandolo allo stato iniziale attivo
       const btnLogin = document.getElementById('btn-login');
       if (btnLogin) {
         btnLogin.innerText = "Accedi al Portale";
@@ -384,29 +383,66 @@
       disegnaProdotti(tuttiProdotti);
     }
 
-    // Estrazione Dinamica dei Filtri Dropdown
+    // Estrazione Dinamica dei Filtri Dropdown (MODIFICATO PER SOTTOCATEGORIE DINAMICHE)
     function popolaFiltri(prodotti) {
       const setCategorie = new Set();
-      const setSottocategorie = new Set();
+      
       prodotti.forEach(p => {
-        if (p['Categoria'] && p['Categoria'].trim() !== '') setCategorie.add(p['Categoria'].trim());
-        if (p['Sottocategoria'] && p['Sottocategoria'].trim() !== '') setSottocategorie.add(p['Sottocategoria'].trim());
+        if (p['Categoria'] && p['Categoria'].trim() !== '') {
+          setCategorie.add(p['Categoria'].trim());
+        }
       });
+      
       const catSelect = document.getElementById('filtro-categoria');
       const subcatSelect = document.getElementById('filtro-sottocategoria');
+      
       catSelect.innerHTML = '<option value="">Tutte le Categorie</option>';
       subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
+      subcatSelect.disabled = true; 
+      
       [...setCategorie].sort().forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
-      [...setSottocategorie].sort().forEach(s => subcatSelect.innerHTML += `<option value="${s}">${s}</option>`);
     }
 
-    // Applicazione dei Filtri Selezionati
+    // Applicazione dei Filtri Selezionati e Aggiornamento Sottocategorie
     function applicaFiltri() {
       const catSelezionata = document.getElementById('filtro-categoria').value;
-      const subcatSelezionata = document.getElementById('filtro-sottocategoria').value;
+      const subcatSelect = document.getElementById('filtro-sottocategoria');
+      const subcatSelezionata = subcatSelect.value;
+      
       let prodottiFiltrati = tuttiProdotti;
-      if (catSelezionata !== "") prodottiFiltrati = prodottiFiltrati.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
-      if (subcatSelezionata !== "") prodottiFiltrati = prodottiFiltrati.filter(p => p['Sottocategoria'] && p['Sottocategoria'].trim() === subcatSelezionata);
+      
+      if (catSelezionata !== "") {
+        prodottiFiltrati = prodottiFiltrati.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
+        
+        const setSottocategorie = new Set();
+        prodottiFiltrati.forEach(p => {
+          if (p['Sottocategoria'] && p['Sottocategoria'].trim() !== '') {
+            setSottocategorie.add(p['Sottocategoria'].trim());
+          }
+        });
+        
+        if (subcatSelect.dataset.cat !== catSelezionata) {
+            subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
+            if (setSottocategorie.size > 0) {
+                subcatSelect.disabled = false;
+                [...setSottocategorie].sort().forEach(s => subcatSelect.innerHTML += `<option value="${s}">${s}</option>`);
+            } else {
+                subcatSelect.disabled = true;
+            }
+            subcatSelect.dataset.cat = catSelezionata;
+        }
+        
+      } else {
+          subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
+          subcatSelect.disabled = true;
+          subcatSelect.dataset.cat = "";
+      }
+
+      const nuovaSubcatSelezionata = subcatSelect.value;
+      if (nuovaSubcatSelezionata !== "") {
+        prodottiFiltrati = prodottiFiltrati.filter(p => p['Sottocategoria'] && p['Sottocategoria'].trim() === nuovaSubcatSelezionata);
+      }
+      
       disegnaProdotti(prodottiFiltrati);
     }
 
