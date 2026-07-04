@@ -20,17 +20,15 @@
       --bordeaux-dark: #5a1117;
       --orange: #e65c00;   
       --orange-hover: #cc5200;
-      --bg-color: #fffaf7; /* Sfondo leggermente caldo */
+      --bg-color: #fffaf7; 
     }
 
     body { background-color: var(--bg-color); padding-bottom: 100px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     
-    /* Classi di utilità per Colori */
     .text-bordeaux { color: var(--bordeaux) !important; }
     .text-orange { color: var(--orange) !important; }
     .bg-bordeaux { background-color: var(--bordeaux) !important; color: white; }
     
-    /* Pulsanti Personalizzati */
     .btn-bordeaux { background-color: var(--bordeaux); color: white; border: none; transition: 0.3s; }
     .btn-bordeaux:hover { background-color: var(--bordeaux-dark); color: white; }
     .btn-orange { background-color: var(--orange); color: white; border: none; transition: 0.3s; }
@@ -38,7 +36,6 @@
     .btn-outline-bordeaux { border: 2px solid var(--bordeaux); color: var(--bordeaux); font-weight: bold; transition: 0.3s; }
     .btn-outline-bordeaux:hover { background-color: var(--bordeaux); color: white; }
 
-    /* Schermate di Autenticazione */
     .center-screen { height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; }
     
     .auth-card { 
@@ -48,7 +45,6 @@
       border-top: 6px solid var(--bordeaux);
     }
     
-    /* Card Prodotti del Catalogo */
     .product-card { margin-bottom: 25px; }
     .product-card .card { 
       border: none; border-bottom: 4px solid var(--orange); 
@@ -59,13 +55,11 @@
       box-shadow: 0 12px 25px rgba(124, 26, 34, 0.15) !important; 
     }
     
-    /* Interazioni elementi card cliccabili */
     .product-img-click { cursor: pointer; transition: opacity 0.2s; }
     .product-img-click:hover { opacity: 0.85; }
     .product-title-click { cursor: pointer; }
     .product-title-click:hover { color: var(--orange) !important; }
 
-    /* Barra Carrello sempre visibile in basso */
     .cart-sticky { 
       position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1000; 
       box-shadow: 0 -5px 20px rgba(0,0,0,0.08); 
@@ -136,15 +130,19 @@
       </div>
       
       <div class="row mb-4 bg-white p-3 rounded shadow-sm border" id="filtri-section" style="display: none; border-color: #f0e6e6 !important;">
+        <div class="col-12 mb-3">
+          <input type="text" id="filtro-testo" class="form-control bg-light border-secondary-subtle py-2" placeholder="🔍 Cerca per nome o codice articolo..." onkeyup="applicaFiltriGlobali()">
+        </div>
+        
         <div class="col-md-6 mb-2 mb-md-0">
           <label class="small text-muted fw-bold mb-1">Filtra per Categoria</label>
-          <select id="filtro-categoria" class="form-select bg-light" onchange="applicaFiltri()">
+          <select id="filtro-categoria" class="form-select bg-light" onchange="cambioCategoria()">
             <option value="">Tutte le Categorie</option>
           </select>
         </div>
         <div class="col-md-6">
           <label class="small text-muted fw-bold mb-1">Filtra per Sottocategoria</label>
-          <select id="filtro-sottocategoria" class="form-select bg-light" onchange="applicaFiltri()">
+          <select id="filtro-sottocategoria" class="form-select bg-light" onchange="applicaFiltriGlobali()">
             <option value="">Tutte le Sottocategorie</option>
           </select>
         </div>
@@ -347,7 +345,7 @@
       }
     }
 
-    // Sconnessione Utente (Logout Completo con FIX ripristino bottone)
+    // Sconnessione Utente
     function eseguiLogout() {
       var mioModal = bootstrap.Modal.getInstance(document.getElementById('profiloModal'));
       if(mioModal) mioModal.hide();
@@ -357,6 +355,7 @@
       
       document.getElementById('login-password').value = '';
       document.getElementById('prof-nuova-psw').value = '';
+      document.getElementById('filtro-testo').value = ''; 
       
       const btnLogin = document.getElementById('btn-login');
       if (btnLogin) {
@@ -378,15 +377,14 @@
       if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-orange fw-bold">Nessun articolo a catalogo.</p>`; return; }
 
       tuttiProdotti = prodotti;
-      popolaFiltri(tuttiProdotti); 
+      popolaFiltriIniziali(tuttiProdotti); 
       document.getElementById('filtri-section').style.display = 'flex'; 
       disegnaProdotti(tuttiProdotti);
     }
 
-    // Estrazione Dinamica dei Filtri Dropdown (MODIFICATO PER SOTTOCATEGORIE DINAMICHE)
-    function popolaFiltri(prodotti) {
+    // Popola inizialmente solo la tendina delle Categorie Padre
+    function popolaFiltriIniziali(prodotti) {
       const setCategorie = new Set();
-      
       prodotti.forEach(p => {
         if (p['Categoria'] && p['Categoria'].trim() !== '') {
           setCategorie.add(p['Categoria'].trim());
@@ -403,44 +401,63 @@
       [...setCategorie].sort().forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
     }
 
-    // Applicazione dei Filtri Selezionati e Aggiornamento Sottocategorie
-    function applicaFiltri() {
+    // REGOLE DI FILTRAGGIO - AZIONE 1: AGGIORNA LE SOTTOCATEGORIE QUANDO CAMBIA LA CATEGORIA
+    function cambioCategoria() {
       const catSelezionata = document.getElementById('filtro-categoria').value;
       const subcatSelect = document.getElementById('filtro-sottocategoria');
-      const subcatSelezionata = subcatSelect.value;
       
-      let prodottiFiltrati = tuttiProdotti;
+      subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
       
       if (catSelezionata !== "") {
-        prodottiFiltrati = prodottiFiltrati.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
-        
+        const prodottiCat = tuttiProdotti.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
         const setSottocategorie = new Set();
-        prodottiFiltrati.forEach(p => {
+        
+        prodottiCat.forEach(p => {
           if (p['Sottocategoria'] && p['Sottocategoria'].trim() !== '') {
             setSottocategorie.add(p['Sottocategoria'].trim());
           }
         });
         
-        if (subcatSelect.dataset.cat !== catSelezionata) {
-            subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
-            if (setSottocategorie.size > 0) {
-                subcatSelect.disabled = false;
-                [...setSottocategorie].sort().forEach(s => subcatSelect.innerHTML += `<option value="${s}">${s}</option>`);
-            } else {
-                subcatSelect.disabled = true;
-            }
-            subcatSelect.dataset.cat = catSelezionata;
-        }
-        
-      } else {
-          subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
+        if (setSottocategorie.size > 0) {
+          subcatSelect.disabled = false;
+          [...setSottocategorie].sort().forEach(s => {
+            subcatSelect.innerHTML += `<option value="${s}">${s}</option>`;
+          });
+        } else {
           subcatSelect.disabled = true;
-          subcatSelect.dataset.cat = "";
+        }
+      } else {
+        subcatSelect.disabled = true;
       }
+      
+      applicaFiltriGlobali();
+    }
 
-      const nuovaSubcatSelezionata = subcatSelect.value;
-      if (nuovaSubcatSelezionata !== "") {
-        prodottiFiltrati = prodottiFiltrati.filter(p => p['Sottocategoria'] && p['Sottocategoria'].trim() === nuovaSubcatSelezionata);
+    // REGOLE DI FILTRAGGIO - AZIONE 2: APPLICA TUTTI I FILTRI ASSIEME (TESTO + CAT + SUBCAT)
+    function applicaFiltriGlobali() {
+      const catSelezionata = document.getElementById('filtro-categoria').value;
+      const subcatSelezionata = document.getElementById('filtro-sottocategoria').value;
+      const testoRicerca = document.getElementById('filtro-testo').value.toLowerCase().trim();
+      
+      let prodottiFiltrati = tuttiProdotti;
+      
+      // Filtro per Categoria
+      if (catSelezionata !== "") {
+        prodottiFiltrati = prodottiFiltrati.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
+      }
+      
+      // Filtro per Sottocategoria
+      if (subcatSelezionata !== "") {
+        prodottiFiltrati = prodottiFiltrati.filter(p => p['Sottocategoria'] && p['Sottocategoria'].trim() === subcatSelezionata);
+      }
+      
+      // Filtro per Testo (Cerca nel codice e nella descrizione)
+      if (testoRicerca !== "") {
+        prodottiFiltrati = prodottiFiltrati.filter(p => {
+          const desc = (p['Descrizione'] || "").toLowerCase();
+          const cod = (p['Cod.'] || "").toLowerCase();
+          return desc.includes(testoRicerca) || cod.includes(testoRicerca);
+        });
       }
       
       disegnaProdotti(prodottiFiltrati);
@@ -449,7 +466,11 @@
     // Rendering Grafico del Catalogo
     function disegnaProdotti(prodotti) {
       const app = document.getElementById('app');
-      if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-muted mt-4 fw-bold">Nessun prodotto trovato per questa selezione.</p>`; return; }
+      if (!prodotti || prodotti.length === 0) { 
+        app.innerHTML = `<p class="text-muted mt-4 fw-bold">Nessun prodotto trovato per questa ricerca.</p>`; 
+        return; 
+      }
+      
       let html = '';
       prodotti.forEach(p => {
         const cod = p['Cod.']; if(!cod) return; 
