@@ -1,626 +1,164 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Portale Ordini Filiere Etiche ADM</title>
-  
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#7c1a22">
-  <link rel="apple-touch-icon" href="icon.png">
-  
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <style>
-    /* IL TEMA BORDEAUX E ARANCIO */
-    :root {
-      --bordeaux: #7c1a22; 
-      --bordeaux-dark: #5a1117;
-      --orange: #e65c00;   
-      --orange-hover: #cc5200;
-      --bg-color: #fffaf7; 
-    }
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1"
+import { XMLParser } from "https://esm.sh/fast-xml-parser@4.2.7"
 
-    body { background-color: var(--bg-color); padding-bottom: 100px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    
-    .text-bordeaux { color: var(--bordeaux) !important; }
-    .text-orange { color: var(--orange) !important; }
-    .bg-bordeaux { background-color: var(--bordeaux) !important; color: white; }
-    
-    .btn-bordeaux { background-color: var(--bordeaux); color: white; border: none; transition: 0.3s; }
-    .btn-bordeaux:hover { background-color: var(--bordeaux-dark); color: white; }
-    .btn-orange { background-color: var(--orange); color: white; border: none; transition: 0.3s; }
-    .btn-orange:hover { background-color: var(--orange-hover); color: white; }
-    .btn-outline-bordeaux { border: 2px solid var(--bordeaux); color: var(--bordeaux); font-weight: bold; transition: 0.3s; }
-    .btn-outline-bordeaux:hover { background-color: var(--bordeaux); color: white; }
+const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
+const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") as string;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-    .center-screen { height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-    
-    .auth-card { 
-      width: 100%; max-width: 400px; padding: 2.5rem; 
-      border-radius: 12px; background: white; 
-      box-shadow: 0 10px 30px rgba(124, 26, 34, 0.1); 
-      border-top: 6px solid var(--bordeaux);
-    }
-    
-    .product-card { margin-bottom: 25px; }
-    .product-card .card { 
-      border: none; border-bottom: 4px solid var(--orange); 
-      border-radius: 10px; transition: transform 0.2s, box-shadow 0.2s; 
-    }
-    .product-card .card:hover { 
-      transform: translateY(-5px); 
-      box-shadow: 0 12px 25px rgba(124, 26, 34, 0.15) !important; 
-    }
-    
-    .product-img-click { cursor: pointer; transition: opacity 0.2s; }
-    .product-img-click:hover { opacity: 0.85; }
-    .product-title-click { cursor: pointer; }
-    .product-title-click:hover { color: var(--orange) !important; }
+serve(async (req) => {
+   const targetBase64 = btoa("admin:Filere2");
+   const authHeader = req.headers.get("authorization");
+   const xAuthHeader = req.headers.get("x-authorization");
 
-    .cart-sticky { 
-      position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1000; 
-      box-shadow: 0 -5px 20px rgba(0,0,0,0.08); 
-      border-top: 3px solid var(--bordeaux); 
-    }
-    
-    .cart-item { border-bottom: 1px solid #f0e6e6; padding-bottom: 10px; margin-bottom: 10px; }
-    .riepilogo-riga { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 5px; color: #6c757d; }
-    
-    .form-control:focus, .form-select:focus { border-color: var(--orange); box-shadow: 0 0 0 0.25rem rgba(230, 92, 0, 0.25); }
-  </style>
-</head>
-<body>
+   if (authHeader !== `Basic ${targetBase64}` && xAuthHeader !== targetBase64) {
+     return new Response("Accesso negato: password errata", { status: 401 });
+   }
 
-  <div id="login-section" class="center-screen">
-    <div class="auth-card text-center">
-      <h3 class="mb-2 fw-bold text-bordeaux">Filiere Etiche ADM</h3>
-      <p class="text-orange fw-semibold mb-4">Area Riservata B2B</p>
-      
-      <div class="mb-3 text-start">
-        <label class="form-label text-muted small fw-bold">Indirizzo Email</label>
-        <input type="email" id="login-email" class="form-control" placeholder="Inserire email">
-      </div>
-      <div class="mb-4 text-start">
-        <label class="form-label text-muted small fw-bold">Password</label>
-        <input type="password" id="login-password" class="form-control" placeholder="Inserire password">
-      </div>
-      <button class="btn btn-bordeaux w-100 fw-bold py-2 shadow-sm" onclick="eseguiLogin()" id="btn-login">Accedi al Portale</button>
-      <p id="login-error" class="text-danger mt-3 mb-0 fw-bold" style="display:none;">Credenziali non valide. Riprovare.</p>
-      
-      <hr class="mt-4 mb-3" style="opacity: 0.1;">
-      <p class="small text-muted mb-0">Sei un nuovo cliente? <a href="#" onclick="mostraRegistrazione()" class="text-bordeaux fw-bold text-decoration-none">Registrati ora</a></p>
-    </div>
-  </div>
+   try {
+     const contentType = req.headers.get("content-type") || "";
+     
+     if (!contentType.includes("multipart/form-data")) {
+       throw new Error("Richiesta non valida. Previsto multipart/form-data.");
+     }
 
-  <div id="register-section" class="center-screen" style="display: none;">
-    <div class="auth-card text-center border-top-0" style="border-top: 6px solid var(--orange) !important;">
-      <h4 class="mb-4 fw-bold text-orange">Nuovo Account B2B</h4>
-      
-      <div class="mb-3 text-start">
-        <label class="form-label text-muted small fw-bold">Ragione Sociale (o Nome)</label>
-        <input type="text" id="reg-ragionesociale" class="form-control" placeholder="es. Mario Rossi SRL">
-      </div>
-      <div class="mb-3 text-start">
-        <label class="form-label text-muted small fw-bold">Indirizzo Email</label>
-        <input type="email" id="reg-email" class="form-control" placeholder="es. mario@azienda.it">
-      </div>
-      <div class="mb-4 text-start">
-        <label class="form-label text-muted small fw-bold">Scegli una Password</label>
-        <input type="password" id="reg-password" class="form-control" placeholder="Minimo 6 caratteri">
-      </div>
-      <button class="btn btn-orange w-100 fw-bold py-2 shadow-sm" onclick="eseguiRegistrazione()" id="btn-register">Crea Account</button>
-      
-      <hr class="mt-4 mb-3" style="opacity: 0.1;">
-      <p class="small text-muted mb-0">Hai già un account? <a href="#" onclick="mostraLogin()" class="text-orange fw-bold text-decoration-none">Torna al Login</a></p>
-    </div>
-  </div>
+     const formData = await req.formData();
+     const fileInput = formData.get("file");
+     const fileNameDanea = formData.get("fileName") as string | null;
 
-  <div id="app-section" style="display: none;">
-    <div class="container mt-4">
-      
-      <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-        <h3 class="text-bordeaux fw-bold mb-0">Catalogo Prodotti</h3>
-        <div>
-          <span class="badge bg-bordeaux fs-6 px-3 py-2 me-2 shadow-sm" id="nome-cliente-display"></span>
-          <button class="btn btn-outline-secondary btn-sm fw-bold border-0 bg-white shadow-sm" data-bs-toggle="modal" data-bs-target="#profiloModal">⚙️ Profilo</button>
-        </div>
-      </div>
-      
-      <div class="row mb-4 bg-white p-3 rounded shadow-sm border" id="filtri-section" style="display: none; border-color: #f0e6e6 !important;">
-        <div class="col-12 mb-3">
-          <input type="text" id="filtro-testo" class="form-control bg-light border-secondary-subtle py-2" placeholder="🔍 Cerca per nome o codice articolo..." onkeyup="applicaFiltriGlobali()">
-        </div>
-        
-        <div class="col-md-6 mb-2 mb-md-0">
-          <label class="small text-muted fw-bold mb-1">Filtra per Categoria</label>
-          <select id="filtro-categoria" class="form-select bg-light" onchange="cambioCategoria()">
-            <option value="">Tutte le Categorie</option>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <label class="small text-muted fw-bold mb-1">Filtra per Sottocategoria</label>
-          <select id="filtro-sottocategoria" class="form-select bg-light" onchange="applicaFiltriGlobali()">
-            <option value="">Tutte le Sottocategorie</option>
-          </select>
-        </div>
-      </div>
-      
-      <div id="app" class="row text-center py-5">
-        <div class="spinner-border text-bordeaux mx-auto" role="status"></div>
-        <p class="text-muted mt-3 fw-bold">Sincronizzazione catalogo in corso...</p>
-      </div>
-    </div>
+     if (!fileInput || !(fileInput instanceof File)) {
+       throw new Error("Nessun file trovato nella richiesta.");
+     }
 
-    <div class="bg-white p-3 cart-sticky d-flex justify-content-between align-items-center px-md-5">
-      <div>
-        <span class="text-muted text-uppercase small fw-bold">Totale Ordine:</span>
-        <h4 class="mb-0 text-bordeaux fw-bold d-inline ms-2" id="cart-total-bar">€ 0.00</h4>
-      </div>
-      <button class="btn btn-orange btn-lg fw-bold shadow px-4" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
-        Vedi Ordine <span class="badge bg-white text-orange ms-2 fs-6 rounded-pill" id="cart-badge">0</span>
-      </button>
-    </div>
-  </div>
+     // =================================================================
+     // FASE A: IMMAGINI
+     // =================================================================
+     if (fileNameDanea || fileInput.name.toLowerCase().endsWith('.jpg') || fileInput.name.toLowerCase().endsWith('.png')) {
+       let actualFileName = fileNameDanea || fileInput.name;
+       const lastDotIndex = actualFileName.lastIndexOf('.');
+       let nameWithoutExt = actualFileName;
+       
+       if (lastDotIndex !== -1) nameWithoutExt = actualFileName.substring(0, lastDotIndex);
 
-  <div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas" style="border-left: 5px solid var(--bordeaux);">
-    <div class="offcanvas-header border-bottom bg-light">
-      <h5 class="offcanvas-title fw-bold text-bordeaux">Riepilogo Ordine</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body d-flex flex-column">
-      <div id="cart-items-container" class="flex-grow-1 overflow-auto pe-2">
-        <p class="text-muted text-center mt-5">Nessun articolo selezionato.</p>
-      </div>
-      
-      <div class="border-top pt-3 mt-3 bg-white">
-        <div class="riepilogo-riga"><span>Imponibile:</span><span id="cart-imponibile" class="fw-semibold">€ 0.00</span></div>
-        <div class="riepilogo-riga border-bottom pb-2 mb-2"><span>Totale IVA:</span><span id="cart-iva" class="fw-semibold">€ 0.00</span></div>
-        <div class="d-flex justify-content-between mb-3 align-items-center mt-3">
-          <span class="fw-bold fs-6 text-dark text-uppercase">Totale (Ivato):</span>
-          <span class="fw-bold fs-3 text-bordeaux" id="cart-offcanvas-total">€ 0.00</span>
-        </div>
-        <button id="btn-checkout" class="btn btn-bordeaux btn-lg w-100 fw-bold py-3 shadow" onclick="inviaOrdine()">🚀 Conferma Ordine</button>
-      </div>
-    </div>
-  </div>
+       let cleanName = nameWithoutExt.split(' ')[0]; 
+       actualFileName = cleanName + '.jpg'; 
+       
+       const fileData = new Uint8Array(await fileInput.arrayBuffer());
+       
+       const { error } = await supabase.storage.from('BIrre').upload(actualFileName, fileData, { 
+           upsert: true, contentType: 'image/jpeg' 
+       });
+       if (error) throw error;
+       
+       return new Response("OK", { status: 200, headers: { "Content-Type": "text/plain" } });
+     }
 
-  <div class="modal fade" id="profiloModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg">
-        <div class="modal-header bg-bordeaux text-white border-0">
-          <h5 class="modal-title fw-bold">Il tuo Profilo B2B</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body p-4">
-          <div class="mb-3">
-            <label class="text-muted small fw-bold">Ragione Sociale</label>
-            <input type="text" class="form-control bg-light text-dark fw-semibold border-0" id="prof-ragione" readonly>
-          </div>
-          <div class="mb-4">
-            <label class="text-muted small fw-bold">Email (Username)</label>
-            <input type="text" class="form-control bg-light text-dark fw-semibold border-0" id="prof-email" readonly>
-          </div>
-          <hr style="opacity: 0.1;">
-          <h6 class="fw-bold text-orange mb-3">Cambia Password</h6>
-          <div class="mb-3">
-            <input type="password" class="form-control" id="prof-nuova-psw" placeholder="Inserisci la nuova password">
-          </div>
-          <button class="btn btn-outline-bordeaux w-100 py-2 mb-3" onclick="salvaNuovaPassword()">Aggiorna Password</button>
-          
-          <hr style="opacity: 0.1;">
-          <button class="btn btn-danger w-100 py-2 fw-bold" onclick="eseguiLogout()">🚪 Disconnetti Account</button>
-        </div>
-      </div>
-    </div>
-  </div>
+     // =================================================================
+     // FASE B: ELENCO PRODOTTI (XML)
+     // =================================================================
+     const xmlText = await fileInput.text();
+     
+     const parser = new XMLParser({
+       ignoreAttributes: false, 
+       textNodeName: "_text",   
+       isArray: (name) => name === 'Product',
+       parseTagValue: false
+     });
+     
+     const parsedData = parser.parse(xmlText);
+     const root = parsedData?.EasyfattProducts || {};
+     
+     const prodottiXML = root.UpdatedProducts?.Product || root.Products?.Product || [];
+     const arrayProdottiDaSalvare = [];
 
-  <div class="modal fade" id="prodottoModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content border-0 shadow-lg">
-        <div class="modal-header border-bottom-0 pb-0">
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
-        </div>
-        <div class="modal-body p-4 pt-0">
-          <div class="row align-items-center">
-            <div class="col-md-6 text-center mb-3 mb-md-0">
-              <img id="modal-prod-img" src="" class="img-fluid rounded p-2 border" style="max-height: 350px; object-fit: contain;">
-            </div>
-            <div class="col-md-6">
-              <span id="modal-prod-cat" class="badge bg-bordeaux mb-2"></span>
-              <h4 id="modal-prod-title" class="fw-bold text-dark"></h4>
-              <p id="modal-prod-code" class="text-muted small mb-3" style="letter-spacing: 0.5px;"></p>
-              <h3 id="modal-prod-price" class="text-orange fw-bold mb-4"></h3>
-              
-              <div class="border-top pt-3">
-                <h6 class="fw-bold text-secondary mb-2">Descrizione Prodotto:</h6>
-                <p id="modal-prod-desc" class="text-dark" style="white-space: pre-line; line-height: 1.5; font-size: 0.95rem;"></p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+     for (const p of prodottiXML) {
+        if (!p.Code) continue;
 
-  <script>
-    const SUPABASE_URL = 'https://plwzkcpujktjqznvwkzb.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsd3prY3B1amt0anF6bnZ3a3piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjE5MzAsImV4cCI6MjA5ODI5NzkzMH0.O7RpanhUWF5zq5DNIvz9DPSdPpk7tYmycuXHRcBpX2k';
-    const clientDB = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const formatPrice = (val: any) => {
+          if (val === undefined || val === null || val === "") return null;
+          const num = typeof val === 'string' ? parseFloat(val.replace(',', '.')) : val;
+          if (isNaN(num)) return null;
+          return `€ ${num.toFixed(2).replace('.', ',')}`;
+        };
 
-    let cart = {}; 
-    let utenteLoggato = null; 
-    let tuttiProdotti = []; 
+        let iva = null;
+        if (p.Vat !== undefined) iva = typeof p.Vat === 'object' ? p.Vat._text : p.Vat;
 
-    // Navigazione Interfaccia Iniziale
-    function mostraRegistrazione() {
-      document.getElementById('login-section').style.display = 'none';
-      document.getElementById('register-section').style.display = 'flex';
-    }
-    
-    function mostraLogin() {
-      document.getElementById('register-section').style.display = 'none';
-      document.getElementById('login-section').style.display = 'flex';
-    }
+        // ESTRAZIONE PESI E MISURE
+        const um = p.Um || p.SizeUm || p.WeightUm || null;
+        const pesoNetto = p.NetWeight || null;
+        const pesoLordo = p.GrossWeight || null;
 
-    // Creazione Nuovo Utente B2B
-    async function eseguiRegistrazione() {
-      const ragSoc = document.getElementById('reg-ragionesociale').value.trim();
-      const email = document.getElementById('reg-email').value.trim();
-      const psw = document.getElementById('reg-password').value.trim();
-      const btn = document.getElementById('btn-register');
-
-      if(!ragSoc || !email || !psw) return alert("Compila tutti i campi!");
-      if(psw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
-
-      btn.innerText = "Creazione in corso..."; btn.disabled = true;
-
-      const { data: checkEmail } = await clientDB.from('clienti').select('email').eq('email', email);
-      if (checkEmail && checkEmail.length > 0) {
-        alert("Questa email è già registrata. Torna al login.");
-        btn.innerText = "Crea Account"; btn.disabled = false;
-        return;
-      }
-
-      const { error } = await clientDB.from('clienti').insert([{
-        email: email, password: psw, ragione_sociale: ragSoc, listino: 1
-      }]);
-
-      if (error) {
-        alert("Errore durante la registrazione: " + error.message);
-        btn.innerText = "Crea Account"; btn.disabled = false;
-      } else {
-        alert("Account creato con successo! Ora puoi accedere.");
-        mostraLogin();
-        document.getElementById('login-email').value = email;
-        btn.innerText = "Crea Account"; btn.disabled = false;
-      }
-    }
-
-    // Accesso Utente B2B
-    async function eseguiLogin() {
-      const email = document.getElementById('login-email').value.trim();
-      const psw = document.getElementById('login-password').value.trim();
-      const btn = document.getElementById('btn-login');
-      const errorMsg = document.getElementById('login-error');
-
-      if(!email || !psw) return;
-      btn.innerText = "Autenticazione..."; btn.disabled = true; errorMsg.style.display = 'none';
-
-      const { data, error } = await clientDB.from('clienti').select('*').eq('email', email).eq('password', psw).single();
-
-      if (error || !data) {
-        errorMsg.style.display = 'block'; btn.innerText = "Accedi al Portale"; btn.disabled = false;
-      } else {
-        utenteLoggato = data; 
-        if (!utenteLoggato.listino) utenteLoggato.listino = 1;
-
-        document.getElementById('login-section').style.display = 'none'; 
-        document.getElementById('app-section').style.display = 'block';  
-        document.getElementById('nome-cliente-display').innerText = `${utenteLoggato.ragione_sociale} (Listino ${utenteLoggato.listino})`; 
-        
-        document.getElementById('prof-ragione').value = utenteLoggato.ragione_sociale;
-        document.getElementById('prof-email').value = utenteLoggato.email;
-
-        caricaCatalogo();
-      }
-    }
-
-    // Cambio Password Autonomo
-    async function salvaNuovaPassword() {
-      const nuovaPsw = document.getElementById('prof-nuova-psw').value.trim();
-      if(nuovaPsw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
-
-      const { error } = await clientDB.from('clienti').update({ password: nuovaPsw }).eq('id', utenteLoggato.id);
-      
-      if (error) {
-        alert("Errore aggiornamento password.");
-      } else {
-        alert("Password aggiornata con successo!");
-        document.getElementById('prof-nuova-psw').value = '';
-        var myModal = bootstrap.Modal.getInstance(document.getElementById('profiloModal'));
-        if(myModal) myModal.hide();
-      }
-    }
-
-    // Sconnessione Utente
-    function eseguiLogout() {
-      var mioModal = bootstrap.Modal.getInstance(document.getElementById('profiloModal'));
-      if(mioModal) mioModal.hide();
-
-      utenteLoggato = null;
-      cart = {};
-      
-      document.getElementById('login-password').value = '';
-      document.getElementById('prof-nuova-psw').value = '';
-      document.getElementById('filtro-testo').value = ''; 
-      
-      const btnLogin = document.getElementById('btn-login');
-      if (btnLogin) {
-        btnLogin.innerText = "Accedi al Portale";
-        btnLogin.disabled = false;
-      }
-      
-      aggiornaInterfacciaCarrello();
-
-      document.getElementById('app-section').style.display = 'none';
-      document.getElementById('login-section').style.display = 'flex';
-    }
-
-    // Caricamento Articoli dal Database
-    async function caricaCatalogo() {
-      let { data: prodotti, error } = await clientDB.from('prodotti').select('*');
-      if (error) { document.getElementById('app').innerHTML = `<p class="text-danger fw-bold">Errore di comunicazione col server.</p>`; return; }
-      const app = document.getElementById('app');
-      if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-orange fw-bold">Nessun articolo a catalogo.</p>`; return; }
-
-      tuttiProdotti = prodotti;
-      popolaFiltriIniziali(tuttiProdotti); 
-      document.getElementById('filtri-section').style.display = 'flex'; 
-      disegnaProdotti(tuttiProdotti);
-    }
-
-    // Popola inizialmente solo la tendina delle Categorie Padre
-    function popolaFiltriIniziali(prodotti) {
-      const setCategorie = new Set();
-      prodotti.forEach(p => {
-        if (p['Categoria'] && p['Categoria'].trim() !== '') {
-          setCategorie.add(p['Categoria'].trim());
-        }
-      });
-      
-      const catSelect = document.getElementById('filtro-categoria');
-      const subcatSelect = document.getElementById('filtro-sottocategoria');
-      
-      catSelect.innerHTML = '<option value="">Tutte le Categorie</option>';
-      subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
-      subcatSelect.disabled = true; 
-      
-      [...setCategorie].sort().forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
-    }
-
-    // REGOLE DI FILTRAGGIO - AZIONE 1: AGGIORNA LE SOTTOCATEGORIE QUANDO CAMBIA LA CATEGORIA
-    function cambioCategoria() {
-      const catSelezionata = document.getElementById('filtro-categoria').value;
-      const subcatSelect = document.getElementById('filtro-sottocategoria');
-      
-      subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
-      
-      if (catSelezionata !== "") {
-        const prodottiCat = tuttiProdotti.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
-        const setSottocategorie = new Set();
-        
-        prodottiCat.forEach(p => {
-          if (p['Sottocategoria'] && p['Sottocategoria'].trim() !== '') {
-            setSottocategorie.add(p['Sottocategoria'].trim());
-          }
+        arrayProdottiDaSalvare.push({
+          "Cod.": String(p.Code).trim(),
+          "Descrizione": p.Description || null,
+          "Categoria": p.Category || null,
+          "Sottocategoria": p.Subcategory || null,
+          "Listino 1 (ivato)": formatPrice(p.GrossPrice1),
+          "Listino 2 (ivato)": formatPrice(p.GrossPrice2),
+          "Listino 3 (ivato)": formatPrice(p.GrossPrice3),
+          "Cod. Iva": iva || null,
+          "Note": p.Notes || null,
+          "Um": um,
+          "Peso Netto": pesoNetto,
+          "Peso Lordo": pesoLordo
         });
-        
-        if (setSottocategorie.size > 0) {
-          subcatSelect.disabled = false;
-          [...setSottocategorie].sort().forEach(s => {
-            subcatSelect.innerHTML += `<option value="${s}">${s}</option>`;
-          });
-        } else {
-          subcatSelect.disabled = true;
-        }
-      } else {
-        subcatSelect.disabled = true;
-      }
-      
-      applicaFiltriGlobali();
-    }
+     }
 
-    // REGOLE DI FILTRAGGIO - AZIONE 2: APPLICA TUTTI I FILTRI ASSIEME (TESTO + CAT + SUBCAT)
-    function applicaFiltriGlobali() {
-      const catSelezionata = document.getElementById('filtro-categoria').value;
-      const subcatSelezionata = document.getElementById('filtro-sottocategoria').value;
-      const testoRicerca = document.getElementById('filtro-testo').value.toLowerCase().trim();
-      
-      let prodottiFiltrati = tuttiProdotti;
-      
-      // Filtro per Categoria
-      if (catSelezionata !== "") {
-        prodottiFiltrati = prodottiFiltrati.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
-      }
-      
-      // Filtro per Sottocategoria
-      if (subcatSelezionata !== "") {
-        prodottiFiltrati = prodottiFiltrati.filter(p => p['Sottocategoria'] && p['Sottocategoria'].trim() === subcatSelezionata);
-      }
-      
-      // Filtro per Testo (Cerca nel codice e nella descrizione)
-      if (testoRicerca !== "") {
-        prodottiFiltrati = prodottiFiltrati.filter(p => {
-          const desc = (p['Descrizione'] || "").toLowerCase();
-          const cod = (p['Cod.'] || "").toLowerCase();
-          return desc.includes(testoRicerca) || cod.includes(testoRicerca);
-        });
-      }
-      
-      disegnaProdotti(prodottiFiltrati);
-    }
+     const { count: prodottiAttualiInDB } = await supabase
+       .from('prodotti')
+       .select('*', { count: 'exact', head: true });
 
-    // Rendering Grafico del Catalogo
-    function disegnaProdotti(prodotti) {
-      const app = document.getElementById('app');
-      if (!prodotti || prodotti.length === 0) { 
-        app.innerHTML = `<p class="text-muted mt-4 fw-bold">Nessun prodotto trovato per questa ricerca.</p>`; 
-        return; 
-      }
-      
-      let html = '';
-      prodotti.forEach(p => {
-        const cod = p['Cod.']; if(!cod) return; 
-        const desc = p['Descrizione'] || 'N/D';
-        const imgUrl = 'https://plwzkcpujktjqznvwkzb.supabase.co/storage/v1/object/public/BIrre/' + cod + '.jpg';
-        
-        const listinoUtente = utenteLoggato.listino;
-        const nomeColonnaPrezzo = `Listino ${listinoUtente} (ivato)`;
-        let rawPrice = p[nomeColonnaPrezzo];
-        if (!rawPrice) { rawPrice = p['Listino 1 (ivato)'] || "0"; }
-        const prezzo = parseFloat(rawPrice.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
-        
-        const ivaRaw = p['Cod. Iva'];
-        const iva = ivaRaw ? parseFloat(ivaRaw.toString().replace('%','').trim()) : 22; 
-        const safeDesc = desc.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        const catText = p['Categoria'] ? `<span class="badge bg-bordeaux mb-2 bg-opacity-75">${p['Categoria']}</span>` : '';
+     const dbCount = prodottiAttualiInDB || 0;
+     const arrivoCount = arrayProdottiDaSalvare.length;
+     const forzaIncrementale = (arrivoCount < dbCount && dbCount > 0);
 
-        html += `
-          <div class="col-lg-3 col-md-4 col-sm-6 product-card text-start">
-            <div class="card shadow-sm h-100">
-              <div onclick="apriDettaglioProdotto('${cod}')" style="height: 180px; background: #fff; border-radius: 10px 10px 0 0; display: flex; align-items: center; justify-content: center; padding: 15px;">
-                <img src="${imgUrl}" class="product-img-click" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Immagine+non+disponibile';" style="max-height: 100%; max-width: 100%; object-fit: contain;">
-              </div>
-              <div class="card-body d-flex flex-column bg-white border-top">
-                <div>${catText}</div>
-                <h6 class="card-title fw-bold text-dark product-title-click" onclick="apriDettaglioProdotto('${cod}')" style="font-size: 0.95rem; line-height: 1.3;" title="${desc}">${desc}</h6>
-                <p class="text-muted mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">COD. ${cod}</p>
-                <h4 class="text-orange fw-bold mb-3 mt-auto">€ ${prezzo.toFixed(2).replace('.', ',')}</h4>
-                <div class="input-group mt-auto">
-                  <input type="number" class="form-control text-center fw-bold text-secondary" value="1" min="1" id="qty_${cod}">
-                  <button class="btn btn-outline-bordeaux" onclick="addToCart('${cod}', '${safeDesc}', ${prezzo}, ${iva})">Aggiungi</button>
-                </div>
-              </div>
-            </div>
-          </div>`;
-      });
-      app.innerHTML = html;
-    }
+     if (!forzaIncrementale) {
+         if (arrivoCount > 0) {
+             const { data: existingFiles } = await supabase.storage.from('BIrre').list('', { limit: 5000 });
+             if (existingFiles) {
+                 const codiciValidi = new Set(arrayProdottiDaSalvare.map(p => p['Cod.']));
+                 const fotoDaCancellare = existingFiles
+                     .filter(f => f.name.endsWith('.jpg') && !codiciValidi.has(f.name.replace('.jpg', '')))
+                     .map(f => f.name);
+                 
+                 if (fotoDaCancellare.length > 0) {
+                     await supabase.storage.from('BIrre').remove(fotoDaCancellare);
+                 }
+             }
 
-    // Apertura Dettaglio Scheda Prodotto
-    function apriDettaglioProdotto(codice) {
-      const producto = tuttiProdotti.find(p => p['Cod.'] === codice);
-      if(!producto) return;
+             const { error: delErr } = await supabase.from('prodotti').delete().neq('Descrizione', 'xxxxxxxx_dummy_text_xxxxxxxx');
+             if (delErr) throw delErr;
 
-      const desc = producto['Descrizione'] || 'N/D';
-      const imgUrl = 'https://plwzkcpujktjqznvwkzb.supabase.co/storage/v1/object/public/BIrre/' + codice + '.jpg';
-      
-      const listinoUtente = utenteLoggato.listino;
-      let rawPrice = producto[`Listino ${listinoUtente} (ivato)`];
-      if (!rawPrice) { rawPrice = producto['Listino 1 (ivato)'] || "0"; }
-      const prezzo = parseFloat(rawPrice.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+             const { error: insErr } = await supabase.from('prodotti').insert(arrayProdottiDaSalvare);
+             if (insErr) throw insErr;
+         }
+     } else {
+         if (arrivoCount > 0) {
+             const { error: upErr } = await supabase.from('prodotti').upsert(arrayProdottiDaSalvare, { onConflict: 'Cod.' });
+             if (upErr) throw upErr;
+         }
+     }
 
-      document.getElementById('modal-prod-img').src = imgUrl;
-      document.getElementById('modal-prod-img').onerror = function() { this.src = 'https://via.placeholder.com/150?text=Immagine+non+disponibile'; };
-      
-      document.getElementById('modal-prod-title').innerText = desc;
-      document.getElementById('modal-prod-code').innerText = `CODICE PRODOTTO: ${codice}`;
-      document.getElementById('modal-prod-price').innerText = `€ ${prezzo.toFixed(2).replace('.', ',')}`;
-      document.getElementById('modal-prod-cat').innerText = producto['Categoria'] || 'Generico';
-      
-      document.getElementById('modal-prod-desc').innerText = producto['Note'] || producto['Descrizione aggiuntiva'] || 'Nessuna descrizione tecnica aggiuntiva disponibile.';
+     if (root.DeletedProducts?.Product) {
+         const codiciDaCancellare = [];
+         for (const p of root.DeletedProducts.Product) {
+             if (p.Code) codiciDaCancellare.push(String(p.Code).trim());
+         }
+         if (codiciDaCancellare.length > 0) {
+             await supabase.from('prodotti').delete().in('Cod.', codiciDaCancellare);
+             const fotoDaCancellare = codiciDaCancellare.map(cod => `${cod}.jpg`);
+             await supabase.storage.from('BIrre').remove(fotoDaCancellare);
+         }
+     }
 
-      const mioModal = new bootstrap.Modal(document.getElementById('prodottoModal'));
-      mioModal.show();
-    }
+     const publicUrl = `${supabaseUrl}/functions/v1/danea-sync`;
+     const responseText = `OK\nImageSendURL=${publicUrl}`;
+     
+     return new Response(responseText, { status: 200, headers: { "Content-Type": "text/plain" } });
 
-    // Aggiunta Elementi al Carrello
-    function addToCart(codice, desc, prezzo, iva) {
-      const qtyInput = document.getElementById(`qty_${codice}`);
-      const qta = parseInt(qtyInput.value);
-      if (qta > 0) {
-        if(cart[codice]) cart[codice].qta += qta;
-        else cart[codice] = { codice, desc, prezzo, qta, iva };
-        aggiornaInterfacciaCarrello(); qtyInput.value = 1; 
-      }
-    }
-
-    // Rimozione Elementi dal Carrello
-    function rimuoviDalCarrello(codice) { delete cart[codice]; aggiornaInterfacciaCarrello(); }
-
-    // Ricalcolo Fiscale dell'Ordine (Scorporo IVA)
-    function aggiornaInterfacciaCarrello() {
-      let totalLordo = 0; let totalNetto = 0; let countPezzi = 0; let cartHtml = '';
-      for (let key in cart) {
-        let item = cart[key]; let rigaLordo = item.prezzo * item.qta; let rigaNetto = rigaLordo / (1 + (item.iva / 100));
-        totalLordo += rigaLordo; totalNetto += rigaNetto; countPezzi += item.qta;
-        cartHtml += `
-          <div class="cart-item d-flex justify-content-between align-items-center">
-            <div style="max-width: 65%;">
-              <h6 class="mb-1 text-dark fw-bold" style="font-size: 0.85rem; line-height: 1.2;">${item.desc}</h6>
-              <span class="badge bg-light text-dark border">${item.qta} pz</span> 
-              <small class="text-muted ms-1">x € ${item.prezzo.toFixed(2).replace('.', ',')}</small>
-            </div>
-            <div class="text-end">
-              <div class="fw-bold text-bordeaux mb-1">€ ${rigaLordo.toFixed(2).replace('.', ',')}</div>
-              <button class="btn btn-sm btn-light text-danger py-0 px-2 fw-bold" style="font-size: 0.75rem;" onclick="rimuoviDalCarrello('${item.codice}')">Rimuovi</button>
-            </div>
-          </div>`;
-      }
-      let totaleIva = totalLordo - totalNetto;
-      document.getElementById('cart-total-bar').innerText = `€ ${totalLordo.toFixed(2).replace('.', ',')}`;
-      document.getElementById('cart-offcanvas-total').innerText = `€ ${totalLordo.toFixed(2).replace('.', ',')}`;
-      document.getElementById('cart-imponibile').innerText = `€ ${totalNetto.toFixed(2).replace('.', ',')}`;
-      document.getElementById('cart-iva').innerText = `€ ${totaleIva.toFixed(2).replace('.', ',')}`;
-      document.getElementById('cart-badge').innerText = countPezzi;
-      document.getElementById('cart-items-container').innerHTML = countPezzi === 0 ? `<p class="text-muted text-center mt-5">Nessun articolo selezionato.</p>` : cartHtml;
-    }
-
-    // Invio definitivo dell'Ordine a Supabase
-    async function inviaOrdine() {
-      const items = Object.values(cart);
-      if (items.length === 0) return alert("Attenzione: Impossibile inviare un ordine vuoto.");
-      const btn = document.getElementById('btn-checkout');
-      btn.innerHTML = "Elaborazione in corso..."; btn.disabled = true;
-
-      const orderId = 'ORD-' + new Date().getTime();
-      const oggi = new Date();
-      const dataDanea = oggi.getFullYear() + '-' + ('0' + (oggi.getMonth() + 1)).slice(-2) + '-' + ('0' + oggi.getDate()).slice(-2);
-
-      const { error: errorTestata } = await clientDB.from('ordini_testata').insert([
-        { id_ordine: orderId, data: dataDanea, cliente_ragione_sociale: utenteLoggato.ragione_sociale, cliente_codice_danea: utenteLoggato.codice_danea || "" }
-      ]);
-
-      if (errorTestata) { alert("Errore creazione testata ordine."); btn.innerHTML = "🚀 Conferma Ordine"; btn.disabled = false; return; }
-
-      const righeDettaglio = items.map(item => ({ id_ordine: orderId, codice_articolo: item.codice, quantita: item.qta, prezzo_unitario: item.prezzo }));
-      const { error: errorDettaglio } = await clientDB.from('ordini_dettaglio').insert(righeDettaglio);
-
-      if (errorDettaglio) {
-        alert("Errore inserimento righe ordine.");
-      } else {
-        alert("Ordine registrato con successo! 🎉");
-        cart = {}; aggiornaInterfacciaCarrello(); 
-        var myOffcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas'));
-        if(myOffcanvas) myOffcanvas.hide();
-      }
-      btn.innerHTML = "🚀 Conferma Ordine"; btn.disabled = false;
-    }
-  </script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then(reg => {
-          console.log('PWA Service Worker registrato con successo.', reg);
-        }).catch(err => {
-          console.warn('Registrazione Service Worker fallita:', err);
-        });
-      });
-    }
-  </script>
-</body>
-</html>
+   } catch (err) {
+     console.error("ERRORE DURANTE LA SINCRONIZZAZIONE:", err);
+     return new Response(`Errore: ${err.message}`, { status: 500 });
+   }
+})
