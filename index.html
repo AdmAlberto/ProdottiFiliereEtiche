@@ -458,8 +458,8 @@
         const safeDesc = desc.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         
         let pesoTxt = "";
-        if (p['Peso Netto'] && p['Udm Peso']) pesoTxt = `${p['Peso Netto']} ${p['Udm Peso']}`;
-        else if (p['Peso Netto']) pesoTxt = `Peso: ${p['Peso Netto']}`;
+        if (p['Peso netto'] && p['Udm Peso']) pesoTxt = `${p['Peso netto']} ${p['Udm Peso']}`;
+        else if (p['Peso netto']) pesoTxt = `Peso: ${p['Peso netto']}`;
         else if (p['Udm Peso']) pesoTxt = `Unità: ${p['Udm Peso']}`;
         
         const strPesoHtml = pesoTxt ? `<span class="badge bg-secondary mb-2 ms-1">${pesoTxt}</span>` : '';
@@ -504,8 +504,8 @@
       document.getElementById('modal-prod-desc').innerText = p['Note'] || 'Nessuna descrizione tecnica disponibile.';
       
       let strP = "";
-      if (p['Peso Netto'] && p['Udm Peso']) strP = `Confezione da: ${p['Peso Netto']} ${p['Udm Peso']}`;
-      else if (p['Peso Netto']) strP = `Peso: ${p['Peso Netto']}`;
+      if (p['Peso netto'] && p['Udm Peso']) strP = `Confezione da: ${p['Peso netto']} ${p['Udm Peso']}`;
+      else if (p['Peso netto']) strP = `Peso: ${p['Peso netto']}`;
       
       document.getElementById('modal-prod-peso').innerText = strP;
 
