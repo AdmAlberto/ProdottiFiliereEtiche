@@ -458,8 +458,10 @@
         const safeDesc = desc.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         
         let pesoTxt = "";
-        if (p['Peso Netto'] && p['Um']) pesoTxt = `${p['Peso Netto']} ${p['Um']}`;
-        else if (p['Um']) pesoTxt = `Unità: ${p['Um']}`;
+        if (p['Peso Netto'] && p['Udm Peso']) pesoTxt = `${p['Peso Netto']} ${p['Udm Peso']}`;
+        else if (p['Peso Netto']) pesoTxt = `Peso: ${p['Peso Netto']}`;
+        else if (p['Udm Peso']) pesoTxt = `Unità: ${p['Udm Peso']}`;
+        
         const strPesoHtml = pesoTxt ? `<span class="badge bg-secondary mb-2 ms-1">${pesoTxt}</span>` : '';
         const catText = p['Categoria'] ? `<span class="badge bg-bordeaux mb-2 bg-opacity-75">${p['Categoria']}</span>` : '';
 
@@ -502,7 +504,9 @@
       document.getElementById('modal-prod-desc').innerText = p['Note'] || 'Nessuna descrizione tecnica disponibile.';
       
       let strP = "";
-      if (p['Peso Netto'] && p['Um']) strP = `Confezione da: ${p['Peso Netto']} ${p['Um']}`;
+      if (p['Peso Netto'] && p['Udm Peso']) strP = `Confezione da: ${p['Peso Netto']} ${p['Udm Peso']}`;
+      else if (p['Peso Netto']) strP = `Peso: ${p['Peso Netto']}`;
+      
       document.getElementById('modal-prod-peso').innerText = strP;
 
       new bootstrap.Modal(document.getElementById('prodottoModal')).show();
