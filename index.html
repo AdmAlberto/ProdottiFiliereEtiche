@@ -38,14 +38,13 @@
     .center-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px; }
     
     .auth-card, .full-page-card { 
-      width: 100%; max-width: 500px; padding: 2.5rem; 
+      width: 100%; padding: 2.5rem; 
       border-radius: 12px; background: white; 
       box-shadow: 0 10px 30px rgba(124, 26, 34, 0.1); 
       border-top: 6px solid var(--bordeaux);
       margin: 0 auto;
     }
-
-    .full-page-card { max-width: 800px; }
+    .auth-card { max-width: 500px; }
     
     .product-card { margin-bottom: 25px; }
     .product-card .card { 
@@ -53,8 +52,7 @@
       border-radius: 10px; transition: transform 0.2s, box-shadow 0.2s; height: 100%;
     }
     .product-card .card:hover { 
-      transform: translateY(-5px); 
-      box-shadow: 0 12px 25px rgba(124, 26, 34, 0.15) !important; 
+      transform: translateY(-5px); box-shadow: 0 12px 25px rgba(124, 26, 34, 0.15) !important; 
     }
     
     .product-img-click { cursor: pointer; transition: opacity 0.2s; }
@@ -64,40 +62,29 @@
 
     .cart-sticky { 
       position: sticky; bottom: 0; left: 0; width: 100%; z-index: 1000; 
-      box-shadow: 0 -5px 20px rgba(0,0,0,0.08); 
-      border-top: 3px solid var(--bordeaux); 
+      box-shadow: 0 -5px 20px rgba(0,0,0,0.08); border-top: 3px solid var(--bordeaux); 
     }
     
     .cart-item { border-bottom: 1px solid #f0e6e6; padding-bottom: 10px; margin-bottom: 10px; }
     .riepilogo-riga { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 5px; color: #6c757d; }
     
-    .form-control:focus, .form-select:focus { border-color: var(--orange); box-shadow: 0 0 0 0.25rem rgba(230, 92, 0, 0.25); }
-
     .top-nav { background-color: var(--bordeaux); padding: 15px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;}
-    .top-nav h4 { color: white; margin: 0; font-weight: bold; }
-    
     .btn-hamburger { border: none; font-size: 1.6rem; padding: 0 10px; color: white; background: transparent; line-height: 1; }
 
     .sidebar-menu .list-group-item {
-        border: none;
-        border-radius: 8px !important;
-        margin-bottom: 5px;
-        transition: 0.2s ease-in-out;
-        cursor: pointer;
+        border: none; border-radius: 8px !important; margin-bottom: 5px; transition: 0.2s ease-in-out; cursor: pointer;
     }
-    .sidebar-menu .list-group-item:hover:not(.active) {
-        background-color: #f1eaea;
-        color: var(--bordeaux) !important;
-    }
-    .sidebar-menu .list-group-item.active {
-        background-color: var(--bordeaux);
-        color: white !important;
-        box-shadow: 0 4px 10px rgba(124, 26, 34, 0.3);
-    }
+    .sidebar-menu .list-group-item:hover:not(.active) { background-color: #f1eaea; color: var(--bordeaux) !important; }
+    .sidebar-menu .list-group-item.active { background-color: var(--bordeaux); color: white !important; box-shadow: 0 4px 10px rgba(124, 26, 34, 0.3); }
+    
+    /* Order History Styles */
+    .order-card { border-left: 5px solid var(--bordeaux) !important; transition: 0.2s; }
+    .order-card:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
   </style>
 </head>
 <body>
 
+  <!-- LOGIN -->
   <div id="login-section" class="center-screen">
     <div class="auth-card text-center">
       <h3 class="mb-2 fw-bold text-bordeaux">Filiere Etiche ADM</h3>
@@ -119,25 +106,26 @@
     </div>
   </div>
 
+  <!-- REGISTRAZIONE -->
   <div id="register-section" class="center-screen" style="display: none; padding-top: 40px; padding-bottom: 40px;">
     <div class="auth-card text-center border-top-0" style="border-top: 6px solid var(--orange) !important;">
       <h4 class="mb-4 fw-bold text-orange">Nuovo Account B2B</h4>
       
       <div class="mb-3 text-start">
         <label class="form-label text-muted small fw-bold">Ragione Sociale (o Nome Gruppo)</label>
-        <input type="text" id="reg-ragionesociale" class="form-control" placeholder="es. Gruppo Scout Cittadella">
+        <input type="text" id="reg-ragionesociale" class="form-control">
       </div>
       <div class="mb-3 text-start">
         <label class="form-label text-muted small fw-bold">Partita IVA o Codice Fiscale</label>
-        <input type="text" id="reg-piva" class="form-control" placeholder="Opzionale per l'anagrafica">
+        <input type="text" id="reg-piva" class="form-control">
       </div>
       <div class="mb-3 text-start">
         <label class="form-label text-muted small fw-bold">Numero di Telefono</label>
-        <input type="tel" id="reg-telefono" class="form-control" placeholder="Per eventuali comunicazioni">
+        <input type="tel" id="reg-telefono" class="form-control">
       </div>
       <div class="mb-3 text-start">
         <label class="form-label text-muted small fw-bold">Indirizzo Email (Accesso)</label>
-        <input type="email" id="reg-email" class="form-control" placeholder="es. mario@azienda.it">
+        <input type="email" id="reg-email" class="form-control">
       </div>
       <div class="mb-4 text-start">
         <label class="form-label text-muted small fw-bold">Scegli una Password</label>
@@ -150,49 +138,56 @@
     </div>
   </div>
 
+  <!-- NAVBAR GLOBALE -->
   <div id="main-navbar" class="top-nav" style="display: none;">
     <div class="d-flex align-items-center">
-      <button class="btn-hamburger d-md-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" id="btn-hamburger-menu">
+      <button class="btn-hamburger d-md-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
         &#9776;
       </button>
       <h4 class="mb-0 text-white fw-bold">Filiere Etiche ADM</h4>
     </div>
     <div class="top-nav-buttons d-flex align-items-center">
-      <span class="badge bg-white text-bordeaux fs-6 px-3 py-2 shadow-sm d-none d-sm-block" id="nome-cliente-display" style="border-radius: 20px;"></span>
-      <button class="btn btn-sm btn-outline-light fw-bold shadow-sm ms-2" onclick="cambiaVista('profile-section')">⚙️ Profilo</button>
-      <button class="btn btn-sm btn-light text-bordeaux fw-bold shadow-sm d-none ms-2" id="btn-back-catalog" onclick="cambiaVista('app-section')">Torna al Catalogo</button>
+      <span class="badge bg-white text-bordeaux fs-6 px-3 py-2 shadow-sm" id="nome-cliente-display" style="border-radius: 20px;"></span>
     </div>
   </div>
 
-  <div id="app-section" style="display: none; padding-bottom: 90px;">
-    <div class="container-fluid mt-4 px-md-4">
-      <div class="row">
-        
-        <div class="col-md-3 col-lg-2 mb-4">
-          <div class="offcanvas-md offcanvas-start bg-light rounded-end shadow-sm" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
-            <div class="offcanvas-header border-bottom">
-              <h5 class="offcanvas-title fw-bold text-bordeaux" id="sidebarMenuLabel">Sfoglia Reparti</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu" aria-label="Close"></button>
-            </div>
-            
-            <div class="offcanvas-body d-flex flex-column pt-md-2 p-3 p-md-0">
-              <div class="sticky-top" style="top: 20px; z-index: 1;">
-                <h5 class="fw-bold text-dark mb-3 ps-2 border-start border-4 border-bordeaux d-none d-md-block">Reparti</h5>
-                <div id="sidebar-categorie" class="list-group sidebar-menu bg-transparent w-100">
-                  </div>
+  <!-- DASHBOARD WRAPPER (Visibile solo se loggati) -->
+  <div id="dashboard-wrapper" class="container-fluid mt-4 px-md-4" style="display: none; padding-bottom: 90px;">
+    <div class="row">
+      
+      <!-- MENU LATERALE (App Navigation) -->
+      <div class="col-md-3 col-lg-2 mb-4">
+        <div class="offcanvas-md offcanvas-start bg-light rounded-end shadow-sm" tabindex="-1" id="sidebarMenu">
+          <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title fw-bold text-bordeaux">Menu Portale</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu"></button>
+          </div>
+          <div class="offcanvas-body d-flex flex-column pt-md-2 p-3 p-md-0">
+            <div class="sticky-top" style="top: 20px; width: 100%;">
+              <div class="list-group sidebar-menu bg-transparent w-100">
+                <button class="list-group-item active fw-bold py-3" id="nav-catalogo" onclick="navigaA('app-section')">🛒 Catalogo Prodotti</button>
+                <button class="list-group-item text-secondary fw-semibold py-3" id="nav-ordini" onclick="navigaA('orders-section')">📦 I Miei Ordini</button>
+                <button class="list-group-item text-secondary fw-semibold py-3" id="nav-profilo" onclick="navigaA('profile-section')">⚙️ Il Mio Profilo</button>
+                <hr style="opacity: 0.1;">
+                <button class="list-group-item text-danger fw-bold" onclick="eseguiLogout()">🚪 Disconnetti</button>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="col-md-9 col-lg-10">
-          
+      <!-- AREA CONTENUTO PRINCIPALE -->
+      <div class="col-md-9 col-lg-10">
+        
+        <!-- SEZIONE 1: CATALOGO PRODOTTI -->
+        <div id="app-section">
+          <!-- BARRA FILTRI SUPERIORE -->
           <div class="row mb-4 bg-white p-3 rounded shadow-sm border align-items-center" style="border-color: #f0e6e6 !important;">
             <div class="col-md-4 mb-2 mb-md-0">
               <input type="text" id="filtro-testo" class="form-control bg-light border-secondary-subtle py-2" placeholder="🔍 Cerca nome o codice..." onkeyup="applicaFiltriGlobali()">
             </div>
             <div class="col-md-4 mb-2 mb-md-0">
-              <select id="filtro-categoria" class="form-select bg-light border-secondary-subtle py-2" onchange="cambioCategoriaDalDropdown()">
+              <select id="filtro-categoria" class="form-select bg-light border-secondary-subtle py-2" onchange="applicaFiltriGlobali(true)">
                 <option value="">Tutte le Categorie</option>
               </select>
             </div>
@@ -202,112 +197,112 @@
               </select>
             </div>
           </div>
-          
+          <!-- GRIGLIA PRODOTTI -->
           <div id="app" class="row text-center py-2">
-            <div class="spinner-border text-bordeaux mx-auto mt-5" role="status"></div>
+            <div class="spinner-border text-bordeaux mx-auto mt-5"></div>
             <p class="text-muted mt-3 fw-bold">Sincronizzazione catalogo in corso...</p>
           </div>
-
         </div>
-      </div>
-    </div>
 
-    <div class="bg-white p-3 cart-sticky d-flex justify-content-between align-items-center px-md-5">
-      <div>
-        <span class="text-muted text-uppercase small fw-bold">Totale Ordine:</span>
-        <h4 class="mb-0 text-bordeaux fw-bold d-inline ms-2" id="cart-total-bar">€ 0.00</h4>
-      </div>
-      <button class="btn btn-orange btn-lg fw-bold shadow px-4" onclick="vaiAlCheckout()">
-        Procedi al Checkout <span class="badge bg-white text-orange ms-2 fs-6 rounded-pill" id="cart-badge">0</span>
-      </button>
-    </div>
-  </div>
-
-  <div id="checkout-section" class="container mt-4 mb-5" style="display: none;">
-    <div class="full-page-card border-top-0" style="border-top: 6px solid var(--orange) !important;">
-      <h3 class="fw-bold text-orange mb-4 border-bottom pb-3">Riepilogo e Spedizione</h3>
-      
-      <div class="row">
-        <div class="col-md-7 border-end pe-md-4 mb-4 mb-md-0">
-          <h6 class="fw-bold text-muted mb-3 text-uppercase">Articoli nel carrello:</h6>
-          <div id="cart-items-container" class="flex-grow-1 overflow-auto" style="max-height: 350px;">
-            <p class="text-muted mt-2">Nessun articolo selezionato.</p>
-          </div>
-          
-          <div class="border-top pt-3 mt-3 bg-light p-3 rounded">
-            <div class="riepilogo-riga"><span>Imponibile:</span><span id="cart-imponibile" class="fw-semibold">€ 0.00</span></div>
-            <div class="riepilogo-riga border-bottom pb-2 mb-2"><span>Totale IVA:</span><span id="cart-iva" class="fw-semibold">€ 0.00</span></div>
-            <div class="d-flex justify-content-between align-items-center mt-3">
-              <span class="fw-bold fs-6 text-dark text-uppercase">Totale (Ivato):</span>
-              <span class="fw-bold fs-3 text-bordeaux" id="cart-offcanvas-total">€ 0.00</span>
+        <!-- SEZIONE 2: I MIEI ORDINI -->
+        <div id="orders-section" style="display: none;">
+          <div class="full-page-card border-top-0 w-100" style="max-width: 100%; border-top: 6px solid var(--bordeaux) !important;">
+            <h3 class="mb-4 fw-bold text-bordeaux">Storico Ordini</h3>
+            <div id="orders-list-container">
+               <!-- Ordini popolati da JS -->
             </div>
           </div>
         </div>
 
-        <div class="col-md-5 ps-md-4">
-          <h6 class="fw-bold text-muted mb-3 text-uppercase">Dettagli Ritiro:</h6>
-          
-          <div class="mb-3">
-            <label class="form-label small fw-bold">Scegli Bottega di Ritiro</label>
-            <select id="checkout-bottega" class="form-select bg-light border-secondary-subtle">
-              <option value="">-- Seleziona una Bottega --</option>
-              <option value="Cittadella">Bottega Cittadella</option>
-              <option value="Tito Livio">Bottega Tito Livio</option>
-              <option value="Arcella">Bottega Arcella</option>
-              <option value="Madonna Pellegrina">Bottega Madonna Pellegrina</option>
-              <option value="Solesino">Bottega Solesino</option>
-            </select>
+        <!-- SEZIONE 3: CHECKOUT (nascosto di default) -->
+        <div id="checkout-section" style="display: none;">
+          <div class="full-page-card border-top-0 w-100" style="max-width: 100%; border-top: 6px solid var(--orange) !important;">
+            <h3 class="fw-bold text-orange mb-4 border-bottom pb-3">Riepilogo e Spedizione</h3>
+            <div class="row">
+              <div class="col-md-7 border-end pe-md-4 mb-4 mb-md-0">
+                <h6 class="fw-bold text-muted mb-3 text-uppercase">Articoli nel carrello:</h6>
+                <div id="cart-items-container" class="flex-grow-1 overflow-auto" style="max-height: 350px;"></div>
+                <div class="border-top pt-3 mt-3 bg-light p-3 rounded">
+                  <div class="riepilogo-riga"><span>Imponibile:</span><span id="cart-imponibile" class="fw-semibold">€ 0.00</span></div>
+                  <div class="riepilogo-riga border-bottom pb-2 mb-2"><span>Totale IVA:</span><span id="cart-iva" class="fw-semibold">€ 0.00</span></div>
+                  <div class="d-flex justify-content-between align-items-center mt-3">
+                    <span class="fw-bold fs-6 text-dark text-uppercase">Totale (Ivato):</span>
+                    <span class="fw-bold fs-3 text-bordeaux" id="cart-offcanvas-total">€ 0.00</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-5 ps-md-4">
+                <h6 class="fw-bold text-muted mb-3 text-uppercase">Dettagli Ritiro:</h6>
+                <div class="mb-3">
+                  <label class="form-label small fw-bold">Scegli Bottega di Ritiro</label>
+                  <select id="checkout-bottega" class="form-select bg-light border-secondary-subtle">
+                    <option value="">-- Seleziona una Bottega --</option>
+                    <option value="Cittadella">Bottega Cittadella</option>
+                    <option value="Tito Livio">Bottega Tito Livio</option>
+                    <option value="Arcella">Bottega Arcella</option>
+                    <option value="Madonna Pellegrina">Bottega Madonna Pellegrina</option>
+                    <option value="Solesino">Bottega Solesino</option>
+                  </select>
+                </div>
+                <div class="mb-4">
+                  <label class="form-label small fw-bold">Data Prevista di Ritiro</label>
+                  <input type="date" id="checkout-data" class="form-control bg-light border-secondary-subtle">
+                </div>
+                <button id="btn-checkout" class="btn btn-bordeaux btn-lg w-100 fw-bold py-3 shadow mb-3" onclick="inviaOrdine()">🚀 Conferma Ordine</button>
+                <button class="btn btn-outline-secondary w-100 fw-bold" onclick="navigaA('app-section')">Torna a fare acquisti</button>
+              </div>
+            </div>
           </div>
-
-          <div class="mb-4">
-            <label class="form-label small fw-bold">Data Prevista di Ritiro</label>
-            <input type="date" id="checkout-data" class="form-control bg-light border-secondary-subtle">
-          </div>
-          
-          <button id="btn-checkout" class="btn btn-bordeaux btn-lg w-100 fw-bold py-3 shadow mb-3" onclick="inviaOrdine()">🚀 Conferma Ordine</button>
-          <button class="btn btn-outline-secondary w-100 fw-bold" onclick="cambiaVista('app-section')">Torna a fare acquisti</button>
         </div>
-      </div>
+
+        <!-- SEZIONE 4: PROFILO BLINDATO -->
+        <div id="profile-section" style="display: none;">
+          <div class="full-page-card border-top-0" style="max-width: 600px; border-top: 6px solid var(--bordeaux) !important; margin: 0;">
+            <h3 class="mb-1 fw-bold text-bordeaux">Il Tuo Profilo</h3>
+            <p class="text-muted small mb-4">I dati di fatturazione e contatto sono gestiti dalla bottega.</p>
+            <div class="row mb-4">
+              <div class="col-md-6 mb-3">
+                <label class="text-muted small fw-bold">Ragione Sociale</label>
+                <input type="text" class="form-control bg-light text-secondary fw-semibold" id="prof-ragione" readonly>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="text-muted small fw-bold">Email (Username)</label>
+                <input type="text" class="form-control bg-light text-secondary fw-semibold" id="prof-email" readonly>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="text-muted small fw-bold">Partita IVA / C.F.</label>
+                <input type="text" class="form-control bg-light text-secondary fw-semibold" id="prof-piva" readonly>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="text-muted small fw-bold">Telefono</label>
+                <input type="text" class="form-control bg-light text-secondary fw-semibold" id="prof-telefono" readonly>
+              </div>
+            </div>
+            <hr style="opacity: 0.1;">
+            <h6 class="fw-bold text-orange mb-3 mt-4">Cambio Password</h6>
+            <div class="mb-3">
+              <input type="password" class="form-control" id="prof-nuova-psw" placeholder="Inserisci la nuova password">
+            </div>
+            <button class="btn btn-outline-bordeaux w-100 py-2 mb-3 fw-bold" onclick="salvaNuovaPassword()">Aggiorna Password</button>
+          </div>
+        </div>
+
+      </div> <!-- Fine Area Contenuto -->
     </div>
+  </div> <!-- Fine Wrapper -->
+
+  <!-- Barra Carrello Globale -->
+  <div id="cart-sticky-bar" class="bg-white p-3 cart-sticky justify-content-between align-items-center px-md-5" style="display: none;">
+    <div>
+      <span class="text-muted text-uppercase small fw-bold">Totale Ordine:</span>
+      <h4 class="mb-0 text-bordeaux fw-bold d-inline ms-2" id="cart-total-bar">€ 0.00</h4>
+    </div>
+    <button class="btn btn-orange btn-lg fw-bold shadow px-4" onclick="navigaA('checkout-section')">
+      Procedi al Checkout <span class="badge bg-white text-orange ms-2 fs-6 rounded-pill" id="cart-badge">0</span>
+    </button>
   </div>
 
-  <div id="profile-section" class="center-screen" style="display: none; align-items: flex-start; justify-content: flex-start; padding-top: 40px; padding-bottom: 40px;">
-    <div class="full-page-card border-top-0" style="max-width: 600px; border-top: 6px solid var(--bordeaux) !important;">
-      <h3 class="mb-1 fw-bold text-bordeaux">Il Tuo Profilo</h3>
-      <p class="text-muted small mb-4">I dati di fatturazione e contatto sono gestiti dalla bottega.</p>
-      
-      <div class="row mb-4">
-        <div class="col-md-6 mb-3">
-          <label class="text-muted small fw-bold">Ragione Sociale</label>
-          <input type="text" class="form-control bg-light text-secondary fw-semibold border-secondary-subtle" id="prof-ragione" readonly>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label class="text-muted small fw-bold">Email (Username)</label>
-          <input type="text" class="form-control bg-light text-secondary fw-semibold border-secondary-subtle" id="prof-email" readonly>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label class="text-muted small fw-bold">Partita IVA / C.F.</label>
-          <input type="text" class="form-control bg-light text-secondary fw-semibold border-secondary-subtle" id="prof-piva" readonly>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label class="text-muted small fw-bold">Telefono</label>
-          <input type="text" class="form-control bg-light text-secondary fw-semibold border-secondary-subtle" id="prof-telefono" readonly>
-        </div>
-      </div>
-      
-      <hr style="opacity: 0.1;">
-      <h6 class="fw-bold text-orange mb-3 mt-4">Gestione Sicurezza</h6>
-      <div class="mb-3">
-        <label class="text-muted small fw-bold">Nuova Password</label>
-        <input type="password" class="form-control border-secondary-subtle" id="prof-nuova-psw" placeholder="Inserisci per aggiornare la password">
-      </div>
-      <button class="btn btn-outline-bordeaux w-100 py-2 mb-3 fw-bold" onclick="salvaNuovaPassword()">Aggiorna Password</button>
-      
-      <hr style="opacity: 0.1;" class="mt-4">
-      <button class="btn btn-light text-danger border-danger w-100 py-2 fw-bold shadow-sm" onclick="eseguiLogout()">🚪 Disconnetti Account</button>
-    </div>
-  </div>
-
+  <!-- MODALI -->
   <div class="modal fade" id="prodottoModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content border-0 shadow-lg">
@@ -322,17 +317,31 @@
             <div class="col-md-7 ps-md-4">
               <span id="modal-prod-cat" class="badge bg-bordeaux mb-2"></span>
               <h4 id="modal-prod-title" class="fw-bold text-dark mb-1"></h4>
-              
-              <p id="modal-prod-code" class="text-muted small mb-2" style="letter-spacing: 0.5px;"></p>
+              <p id="modal-prod-code" class="text-muted small mb-2"></p>
               <p id="modal-prod-peso" class="text-secondary small fw-bold mb-3"></p>
-              
               <h3 id="modal-prod-price" class="text-orange fw-bold mb-4"></h3>
-              
               <div class="border-top pt-3 mt-2">
                 <h6 class="fw-bold text-secondary mb-2 text-uppercase" style="font-size: 0.85rem;">Dettagli Articolo</h6>
                 <div id="modal-prod-desc" class="text-dark" style="line-height: 1.6; font-size: 0.95rem;"></div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Dettaglio Ordine -->
+  <div class="modal fade" id="ordineDettaglioModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title fw-bold text-bordeaux">Dettaglio Ordine</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div id="ordine-dettaglio-content">
+              <div class="spinner-border text-orange mx-auto d-block"></div>
           </div>
         </div>
       </div>
@@ -348,26 +357,59 @@
     let utenteLoggato = null; 
     let tuttiProdotti = []; 
 
+    // GESTIONE NAVIGAZIONE PRINCIPALE
     function cambiaVista(vistaID) {
       document.getElementById('login-section').style.display = 'none';
       document.getElementById('register-section').style.display = 'none';
-      document.getElementById('app-section').style.display = 'none';
-      document.getElementById('profile-section').style.display = 'none';
-      document.getElementById('checkout-section').style.display = 'none';
+      document.getElementById('dashboard-wrapper').style.display = 'none';
+      document.getElementById('main-navbar').style.display = 'none';
+      document.getElementById('cart-sticky-bar').style.display = 'none';
       
-      document.getElementById(vistaID).style.display = (vistaID === 'profile-section' || vistaID === 'login-section' || vistaID === 'register-section') ? 'flex' : 'block';
-
-      if(utenteLoggato && (vistaID === 'app-section' || vistaID === 'profile-section' || vistaID === 'checkout-section')) {
-        document.getElementById('main-navbar').style.display = 'flex';
-        if (vistaID === 'profile-section' || vistaID === 'checkout-section') {
-            document.getElementById('btn-hamburger-menu').classList.add('d-none');
-            document.getElementById('btn-back-catalog').classList.remove('d-none');
-        } else {
-            document.getElementById('btn-hamburger-menu').classList.remove('d-none');
-            document.getElementById('btn-back-catalog').classList.add('d-none');
-        }
+      if(vistaID === 'login-section' || vistaID === 'register-section') {
+        document.getElementById(vistaID).style.display = 'flex';
       } else {
-        document.getElementById('main-navbar').style.display = 'none';
+        document.getElementById('main-navbar').style.display = 'flex';
+        document.getElementById('dashboard-wrapper').style.display = 'block';
+        navigaA(vistaID);
+      }
+    }
+
+    // GESTIONE TAB INTERNE ALLA DASHBOARD
+    function navigaA(sezione) {
+      document.getElementById('app-section').style.display = 'none';
+      document.getElementById('orders-section').style.display = 'none';
+      document.getElementById('checkout-section').style.display = 'none';
+      document.getElementById('profile-section').style.display = 'none';
+      
+      document.getElementById(sezione).style.display = 'block';
+
+      // Mostra la barra carrello solo se siamo nel catalogo
+      if (sezione === 'app-section') {
+        document.getElementById('cart-sticky-bar').style.display = 'flex';
+      } else {
+        document.getElementById('cart-sticky-bar').style.display = 'none';
+      }
+
+      // Aggiorna grafica menu laterale
+      document.querySelectorAll('.sidebar-menu button').forEach(b => {
+          b.classList.remove('active', 'fw-bold');
+          b.classList.add('text-secondary', 'fw-semibold');
+      });
+
+      if(sezione === 'app-section') document.getElementById('nav-catalogo').classList.add('active', 'fw-bold');
+      if(sezione === 'orders-section') {
+          document.getElementById('nav-ordini').classList.add('active', 'fw-bold');
+          caricaStoricoOrdini();
+      }
+      if(sezione === 'profile-section') document.getElementById('nav-profilo').classList.add('active', 'fw-bold');
+
+      // Chiudi il menu su mobile se è aperto
+      const offcanvasMenu = document.getElementById('sidebarMenu');
+      if (offcanvasMenu) {
+          const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvasMenu);
+          if (bsOffcanvas && window.innerWidth < 768) {
+              bsOffcanvas.hide();
+          }
       }
     }
 
@@ -381,31 +423,22 @@
 
       if(!ragSoc || !email || !psw) return alert("Compila almeno Ragione Sociale, Email e Password!");
       if(psw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
-
       btn.innerText = "Creazione in corso..."; btn.disabled = true;
 
       const { data: checkEmail } = await clientDB.from('clienti').select('email').eq('email', email);
       if (checkEmail && checkEmail.length > 0) {
         alert("Questa email è già registrata. Torna al login.");
-        btn.innerText = "Crea Account"; btn.disabled = false;
-        return;
+        btn.innerText = "Crea Account"; btn.disabled = false; return;
       }
 
       const { error } = await clientDB.from('clienti').insert([{ 
-          email: email, 
-          password: psw, 
-          ragione_sociale: ragSoc, 
-          partita_iva: piva,
-          telefono: tel,
-          listino: 1 
+          email: email, password: psw, ragione_sociale: ragSoc, partita_iva: piva, telefono: tel, listino: 1 
       }]);
 
-      if (error) {
-        alert("Errore registrazione: " + error.message);
-      } else {
+      if (error) { alert("Errore registrazione: " + error.message); } 
+      else {
         alert("Account creato con successo! Ora puoi accedere.");
-        cambiaVista('login-section');
-        document.getElementById('login-email').value = email;
+        cambiaVista('login-section'); document.getElementById('login-email').value = email;
       }
       btn.innerText = "Crea Account"; btn.disabled = false;
     }
@@ -427,7 +460,7 @@
         utenteLoggato = data; 
         if (!utenteLoggato.listino) utenteLoggato.listino = 1;
 
-        document.getElementById('nome-cliente-display').innerText = `${utenteLoggato.ragione_sociale} (L${utenteLoggato.listino})`; 
+        document.getElementById('nome-cliente-display').innerText = `${utenteLoggato.ragione_sociale}`; 
         
         document.getElementById('prof-ragione').value = utenteLoggato.ragione_sociale || '';
         document.getElementById('prof-email').value = utenteLoggato.email || '';
@@ -442,142 +475,66 @@
     async function salvaNuovaPassword() {
       const nuovaPsw = document.getElementById('prof-nuova-psw').value.trim();
       if(nuovaPsw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
-
       const { error } = await clientDB.from('clienti').update({ password: nuovaPsw }).eq('email', utenteLoggato.email);
-          
-      if (error) {
-          alert("Errore dal server: " + error.message);
-      } else { 
-          alert("Password aggiornata con successo! 🔐"); 
-          document.getElementById('prof-nuova-psw').value = ''; 
-          utenteLoggato.password = nuovaPsw; 
-      }
+      if (error) { alert("Errore dal server: " + error.message); } 
+      else { alert("Password aggiornata con successo! 🔐"); document.getElementById('prof-nuova-psw').value = ''; utenteLoggato.password = nuovaPsw; }
     }
 
     function eseguiLogout() {
-      utenteLoggato = null;
-      cart = {};
-      document.getElementById('login-password').value = '';
-      document.getElementById('prof-nuova-psw').value = '';
+      utenteLoggato = null; cart = {};
+      document.getElementById('login-password').value = ''; document.getElementById('prof-nuova-psw').value = '';
       document.getElementById('filtro-testo').value = ''; 
-      
       const btnLogin = document.getElementById('btn-login');
       if (btnLogin) { btnLogin.innerText = "Accedi al Portale"; btnLogin.disabled = false; }
-      
-      aggiornaInterfacciaCarrello();
-      cambiaVista('login-section');
+      aggiornaInterfacciaCarrello(); cambiaVista('login-section');
     }
 
+    // GESTIONE CATALOGO E FILTRI
     async function caricaCatalogo() {
       const app = document.getElementById('app');
       let { data: prodotti, error } = await clientDB.from('prodotti').select('*')
-          .order('Categoria', { ascending: true })
-          .order('Sottocategoria', { ascending: true })
-          .order('Descrizione', { ascending: true });
+          .order('Categoria', { ascending: true }).order('Sottocategoria', { ascending: true }).order('Descrizione', { ascending: true });
           
       if (error) { app.innerHTML = `<p class="text-danger fw-bold">Errore di comunicazione col server.</p>`; return; }
       if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-orange fw-bold">Nessun articolo a catalogo.</p>`; return; }
 
       tuttiProdotti = prodotti;
-      popolaFiltriIniziali(tuttiProdotti); 
-    }
-
-    function popolaFiltriIniziali(prodotti) {
+      
       const setCategorie = new Set();
-      prodotti.forEach(p => { if (p['Categoria'] && p['Categoria'].trim() !== '') setCategorie.add(p['Categoria'].trim()); });
+      tuttiProdotti.forEach(p => { if (p['Categoria'] && p['Categoria'].trim() !== '') setCategorie.add(p['Categoria'].trim()); });
       
-      const sidebar = document.getElementById('sidebar-categorie');
-      const dropdownTop = document.getElementById('filtro-categoria');
-      
-      let htmlSidebar = `<button class="list-group-item active fw-bold" id="cat-btn-tutte" onclick="selezionaCategoria('')">Tutte le Categorie</button>`;
+      const dropdownCat = document.getElementById('filtro-categoria');
       let htmlDropdown = `<option value="">Tutte le Categorie</option>`;
+      [...setCategorie].sort().forEach(c => { htmlDropdown += `<option value="${c}">${c}</option>`; });
+      dropdownCat.innerHTML = htmlDropdown;
       
-      [...setCategorie].sort().forEach(c => {
-        const safeId = "cat-" + c.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(); 
-        const safeCat = c.replace(/'/g, "\\'"); 
-        htmlSidebar += `<button class="list-group-item text-secondary fw-semibold" id="${safeId}" onclick="selezionaCategoria('${safeCat}')">${c}</button>`;
-        htmlDropdown += `<option value="${c}">${c}</option>`;
-      });
-      
-      sidebar.innerHTML = htmlSidebar;
-      dropdownTop.innerHTML = htmlDropdown;
-      
-      selezionaCategoria("", false); 
+      applicaFiltriGlobali(true); 
     }
 
-    // Innescata quando l'utente usa il menù a tendina in alto
-    function cambioCategoriaDalDropdown() {
-      const cat = document.getElementById('filtro-categoria').value;
-      selezionaCategoria(cat, false); // false = non sovrascrivere il dropdown
-    }
-
-    // Funzione unificata: gestisce sia il click sulla sidebar che il cambio dal dropdown
-    function selezionaCategoria(cat, aggiornaDropdown = true) {
-      
-      // 1. Sincronizza Dropdown Superiore
-      if (aggiornaDropdown) {
-          document.getElementById('filtro-categoria').value = cat;
-      }
-
-      // 2. Sincronizza Grafica Sidebar
-      const bottoni = document.querySelectorAll('#sidebar-categorie button');
-      bottoni.forEach(b => {
-        b.classList.remove('active', 'fw-bold');
-        b.classList.add('text-secondary', 'fw-semibold');
-      });
-
-      let btnCliccato;
-      if (cat === "") {
-        btnCliccato = document.getElementById('cat-btn-tutte');
-      } else {
-        const safeId = "cat-" + cat.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-        btnCliccato = document.getElementById(safeId);
-      }
-      
-      if (btnCliccato) {
-        btnCliccato.classList.remove('text-secondary', 'fw-semibold');
-        btnCliccato.classList.add('active', 'fw-bold');
-      }
-
-      // 3. Popola Sottocategorie in alto
-      const subcatSelect = document.getElementById('filtro-sottocategoria');
-      subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
-      
-      if (cat !== "") {
-        const prodottiCat = tuttiProdotti.filter(p => p['Categoria'] && p['Categoria'].trim() === cat);
-        const setSottocategorie = new Set();
-        prodottiCat.forEach(p => { if (p['Sottocategoria'] && p['Sottocategoria'].trim() !== '') setSottocategorie.add(p['Sottocategoria'].trim()); });
-        if (setSottocategorie.size > 0) {
-          subcatSelect.disabled = false;
-          [...setSottocategorie].sort().forEach(s => { subcatSelect.innerHTML += `<option value="${s}">${s}</option>`; });
-        } else { subcatSelect.disabled = true; }
-      } else { subcatSelect.disabled = true; }
-      
-      // 4. Se su mobile e il click viene dalla sidebar, chiudi l'offcanvas
-      if (aggiornaDropdown) {
-          const myOffcanvas = document.getElementById('sidebarMenu');
-          if (myOffcanvas) {
-              const bsOffcanvas = bootstrap.Offcanvas.getInstance(myOffcanvas);
-              if (bsOffcanvas && window.innerWidth < 768) {
-                  bsOffcanvas.hide();
-              }
-          }
-      }
-
-      applicaFiltriGlobali();
-    }
-
-    function applicaFiltriGlobali() {
-      // Legge lo stato direttamente dai menù a tendina in alto
+    function applicaFiltriGlobali(resetSottocategoria = false) {
       const catSelezionata = document.getElementById('filtro-categoria').value;
-      const subcatSelezionata = document.getElementById('filtro-sottocategoria').value;
+      const subcatSelect = document.getElementById('filtro-sottocategoria');
       const testoRicerca = document.getElementById('filtro-testo').value.toLowerCase().trim();
-      
+
+      // Gestione dinamica Sottocategorie
+      if (resetSottocategoria) {
+          subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
+          if (catSelezionata !== "") {
+            const prodottiCat = tuttiProdotti.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
+            const setSottocategorie = new Set();
+            prodottiCat.forEach(p => { if (p['Sottocategoria'] && p['Sottocategoria'].trim() !== '') setSottocategorie.add(p['Sottocategoria'].trim()); });
+            if (setSottocategorie.size > 0) {
+              subcatSelect.disabled = false;
+              [...setSottocategorie].sort().forEach(s => { subcatSelect.innerHTML += `<option value="${s}">${s}</option>`; });
+            } else { subcatSelect.disabled = true; }
+          } else { subcatSelect.disabled = true; }
+      }
+
+      const subcatSelezionata = subcatSelect.value;
       let prodottiFiltrati = tuttiProdotti;
       
       if (catSelezionata !== "") prodottiFiltrati = prodottiFiltrati.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
       if (subcatSelezionata !== "") prodottiFiltrati = prodottiFiltrati.filter(p => p['Sottocategoria'] && p['Sottocategoria'].trim() === subcatSelezionata);
-      
       if (testoRicerca !== "") {
         prodottiFiltrati = prodottiFiltrati.filter(p => {
           const desc = (p['Descrizione'] || "").toLowerCase();
@@ -636,7 +593,6 @@
     function apriDettaglioProdotto(codice) {
       const p = tuttiProdotti.find(prod => prod['Cod.'] === codice);
       if(!p) return;
-
       const imgUrl = 'https://plwzkcpujktjqznvwkzb.supabase.co/storage/v1/object/public/BIrre/' + codice + '.jpg';
       let rawPrice = p[`Listino ${utenteLoggato.listino} (ivato)`] || p['Listino 1 (ivato)'] || "0";
       const prezzo = parseFloat(rawPrice.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
@@ -649,27 +605,22 @@
       document.getElementById('modal-prod-cat').innerText = p['Categoria'] || 'Generico';
       
       const descHTML = document.getElementById('modal-prod-desc');
-      if (p['Descriz. web (Sorgente HTML)']) {
-          descHTML.innerHTML = p['Descriz. web (Sorgente HTML)'];
-      } else {
-          descHTML.innerText = p['Note'] || 'Nessuna descrizione tecnica disponibile.';
-      }
+      if (p['Descriz. web (Sorgente HTML)']) descHTML.innerHTML = p['Descriz. web (Sorgente HTML)'];
+      else descHTML.innerText = p['Note'] || 'Nessuna descrizione tecnica disponibile.';
 
       let strP = "";
       if (p['Peso netto'] && p['Udm Peso']) strP = `Confezione da: ${p['Peso netto']} ${p['Udm Peso']}`;
       else if (p['Peso netto']) strP = `Peso: ${p['Peso netto']}`;
-      
       document.getElementById('modal-prod-peso').innerText = strP;
 
       new bootstrap.Modal(document.getElementById('prodottoModal')).show();
     }
 
+    // CARRELLO E CHECKOUT
     function addToCart(codice, desc, prezzo, iva) {
-      const qtyInput = document.getElementById(`qty_${codice}`);
-      const qta = parseInt(qtyInput.value);
+      const qtyInput = document.getElementById(`qty_${codice}`); const qta = parseInt(qtyInput.value);
       if (qta > 0) {
-        if(cart[codice]) cart[codice].qta += qta;
-        else cart[codice] = { codice, desc, prezzo, qta, iva };
+        if(cart[codice]) cart[codice].qta += qta; else cart[codice] = { codice, desc, prezzo, qta, iva };
         aggiornaInterfacciaCarrello(); qtyInput.value = 1; 
       }
     }
@@ -703,18 +654,12 @@
       document.getElementById('cart-items-container').innerHTML = countPezzi === 0 ? `<p class="text-muted text-center mt-5">Nessun articolo selezionato.</p>` : cartHtml;
     }
 
-    function vaiAlCheckout() {
-      if (Object.keys(cart).length === 0) return alert("Il carrello è vuoto.");
-      cambiaVista('checkout-section');
-    }
-
     async function inviaOrdine() {
       const bottegaSelezionata = document.getElementById('checkout-bottega').value;
       const dataScelta = document.getElementById('checkout-data').value;
       
       if (bottegaSelezionata === "") return alert("Devi selezionare una bottega per il ritiro!");
       if (dataScelta === "") return alert("Devi indicare una data prevista di ritiro!");
-
       const items = Object.values(cart);
       if (items.length === 0) return alert("Impossibile inviare un ordine vuoto.");
       
@@ -726,12 +671,8 @@
       const dataDanea = oggi.getFullYear() + '-' + ('0' + (oggi.getMonth() + 1)).slice(-2) + '-' + ('0' + oggi.getDate()).slice(-2);
 
       const { error: errorTestata } = await clientDB.from('ordini_testata').insert([{ 
-          id_ordine: orderId, 
-          data: dataDanea, 
-          cliente_ragione_sociale: utenteLoggato.ragione_sociale, 
-          cliente_codice_danea: utenteLoggato.codice_danea || "",
-          bottega_ritiro: bottegaSelezionata, 
-          data_ritiro: dataScelta 
+          id_ordine: orderId, data: dataDanea, cliente_ragione_sociale: utenteLoggato.ragione_sociale, 
+          cliente_codice_danea: utenteLoggato.codice_danea || "", bottega_ritiro: bottegaSelezionata, data_ritiro: dataScelta 
       }]);
 
       if (errorTestata) { alert("Errore creazione testata ordine."); btn.innerHTML = "🚀 Conferma Ordine"; btn.disabled = false; return; }
@@ -743,12 +684,76 @@
       else {
         alert("Ordine registrato con successo! 🎉");
         cart = {}; aggiornaInterfacciaCarrello(); 
-        document.getElementById('checkout-bottega').value = "";
-        document.getElementById('checkout-data').value = "";
-        cambiaVista('app-section');
+        document.getElementById('checkout-bottega').value = ""; document.getElementById('checkout-data').value = "";
+        navigaA('orders-section');
       }
       btn.innerHTML = "🚀 Conferma Ordine"; btn.disabled = false;
     }
+
+    // NUOVA SEZIONE: STORICO ORDINI
+    async function caricaStoricoOrdini() {
+      const container = document.getElementById('orders-list-container');
+      container.innerHTML = '<div class="spinner-border text-bordeaux mx-auto d-block mt-4"></div>';
+
+      const { data: ordini, error } = await clientDB.from('ordini_testata')
+        .select('*')
+        .eq('cliente_ragione_sociale', utenteLoggato.ragione_sociale)
+        .order('id_ordine', { ascending: false });
+
+      if (error) { container.innerHTML = `<p class="text-danger fw-bold">Errore di caricamento storico ordini.</p>`; return; }
+      if (!ordini || ordini.length === 0) { container.innerHTML = `<p class="text-muted fw-bold">Nessun ordine effettuato finora.</p>`; return; }
+
+      let html = '<div class="list-group">';
+      ordini.forEach(ord => {
+          html += `
+          <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap p-3 mb-3 shadow-sm rounded bg-light order-card">
+              <div>
+                  <h5 class="mb-1 fw-bold text-dark">Ordine #${ord.id_ordine.replace('ORD-','')}</h5>
+                  <p class="mb-1 text-secondary small">📅 Inviato il: <span class="fw-bold text-dark">${ord.data}</span></p>
+                  <p class="mb-0 text-secondary small">📍 Ritiro previsto: <span class="fw-bold text-dark">${ord.data_ritiro}</span> presso <span class="text-orange fw-bold">${ord.bottega_ritiro}</span></p>
+              </div>
+              <button class="btn btn-outline-bordeaux mt-3 mt-md-0 shadow-sm" onclick="apriDettaglioOrdine('${ord.id_ordine}')">Vedi Dettagli</button>
+          </div>
+          `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    async function apriDettaglioOrdine(idOrdine) {
+        const container = document.getElementById('ordine-dettaglio-content');
+        container.innerHTML = '<div class="spinner-border text-orange mx-auto d-block"></div>';
+        
+        new bootstrap.Modal(document.getElementById('ordineDettaglioModal')).show();
+
+        const { data: righe, error } = await clientDB.from('ordini_dettaglio').select('*').eq('id_ordine', idOrdine);
+        
+        if (error || !righe) { container.innerHTML = '<p class="text-danger">Errore nel caricamento del dettaglio.</p>'; return; }
+        
+        let totale = 0;
+        let html = '<ul class="list-group mb-3">';
+        righe.forEach(r => {
+            // Cerchiamo la descrizione del prodotto nel catalogo caricato in memoria (se c'è)
+            const prod = tuttiProdotti.find(p => p['Cod.'] === r.codice_articolo);
+            const nomeArticolo = prod ? prod['Descrizione'] : `Articolo COD. ${r.codice_articolo}`;
+            const subtotale = r.quantita * r.prezzo_unitario;
+            totale += subtotale;
+
+            html += `
+            <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                <div>
+                    <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;">${nomeArticolo}</h6>
+                    <small class="text-muted">${r.quantita} pz x € ${r.prezzo_unitario.toFixed(2).replace('.', ',')}</small>
+                </div>
+                <span class="fw-bold text-bordeaux">€ ${subtotale.toFixed(2).replace('.', ',')}</span>
+            </li>`;
+        });
+        html += '</ul>';
+        html += `<div class="text-end"><h5 class="fw-bold text-dark text-uppercase fs-6">Totale Ordine (Ivato)</h5><h3 class="text-orange fw-bold">€ ${totale.toFixed(2).replace('.', ',')}</h3></div>`;
+        
+        container.innerHTML = html;
+    }
+
   </script>
 
   <script>
