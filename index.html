@@ -19,7 +19,7 @@
       --bordeaux-dark: #5a1117;
       --orange: #e65c00;   
       --orange-hover: #cc5200;
-      --bg-color: #fffaf7; 
+      --bg-color: #f8f9fa;
     }
 
     body { background-color: var(--bg-color); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -76,10 +76,28 @@
     .top-nav { background-color: var(--bordeaux); padding: 15px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;}
     .top-nav h4 { color: white; margin: 0; font-weight: bold; }
     .top-nav-buttons button { margin-left: 10px; }
+
+    .sidebar-menu .list-group-item {
+        border: none;
+        border-radius: 8px !important;
+        margin-bottom: 5px;
+        transition: 0.2s ease-in-out;
+        cursor: pointer;
+    }
+    .sidebar-menu .list-group-item:hover:not(.active) {
+        background-color: #f1eaea;
+        color: var(--bordeaux) !important;
+    }
+    .sidebar-menu .list-group-item.active {
+        background-color: var(--bordeaux);
+        color: white !important;
+        box-shadow: 0 4px 10px rgba(124, 26, 34, 0.3);
+    }
   </style>
 </head>
 <body>
 
+  <!-- LOGIN -->
   <div id="login-section" class="center-screen">
     <div class="auth-card text-center">
       <h3 class="mb-2 fw-bold text-bordeaux">Filiere Etiche ADM</h3>
@@ -101,6 +119,7 @@
     </div>
   </div>
 
+  <!-- REGISTRAZIONE -->
   <div id="register-section" class="center-screen" style="display: none;">
     <div class="auth-card text-center border-top-0" style="border-top: 6px solid var(--orange) !important;">
       <h4 class="mb-4 fw-bold text-orange">Nuovo Account B2B</h4>
@@ -124,6 +143,7 @@
     </div>
   </div>
 
+  <!-- NAVBAR -->
   <div id="main-navbar" class="top-nav" style="display: none;">
     <h4>Filiere Etiche ADM</h4>
     <div class="top-nav-buttons">
@@ -133,32 +153,47 @@
     </div>
   </div>
 
+  <!-- APP (CATALOGO CON SIDEBAR) -->
   <div id="app-section" style="display: none; padding-bottom: 90px;">
-    <div class="container mt-4">
-      <div class="row mb-4 bg-white p-3 rounded shadow-sm border" id="filtri-section" style="border-color: #f0e6e6 !important;">
-        <div class="col-12 mb-3">
-          <input type="text" id="filtro-testo" class="form-control bg-light border-secondary-subtle py-2" placeholder="🔍 Cerca per nome o codice articolo..." onkeyup="applicaFiltriGlobali()">
+    <div class="container-fluid mt-4 px-md-5">
+      <div class="row">
+        
+        <!-- SIDEBAR CATEGORIE -->
+        <div class="col-md-3 col-lg-2 mb-4">
+          <div class="sticky-top" style="top: 20px; z-index: 1;">
+            <h5 class="fw-bold text-dark mb-3 ps-2 border-start border-4 border-bordeaux">Reparti</h5>
+            <div id="sidebar-categorie" class="list-group sidebar-menu bg-transparent">
+              <!-- Categorie popolate dinamicamente -->
+            </div>
+          </div>
         </div>
-        <div class="col-md-6 mb-2 mb-md-0">
-          <label class="small text-muted fw-bold mb-1">Filtra per Categoria</label>
-          <select id="filtro-categoria" class="form-select bg-light" onchange="cambioCategoria()">
-            <option value="">Tutte le Categorie</option>
-          </select>
+
+        <!-- MAIN CONTENT -->
+        <div class="col-md-9 col-lg-10">
+          
+          <!-- Barra Ricerca -->
+          <div class="row mb-4 bg-white p-3 rounded shadow-sm border align-items-center" style="border-color: #f0e6e6 !important;">
+            <div class="col-md-8 mb-2 mb-md-0">
+              <input type="text" id="filtro-testo" class="form-control bg-light border-secondary-subtle py-2" placeholder="🔍 Cerca prodotto per nome o codice..." onkeyup="applicaFiltriGlobali()">
+            </div>
+            <div class="col-md-4">
+              <select id="filtro-sottocategoria" class="form-select bg-light" onchange="applicaFiltriGlobali()" disabled>
+                <option value="">Tutte le Sottocategorie</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Griglia Prodotti -->
+          <div id="app" class="row text-center py-2">
+            <div class="spinner-border text-bordeaux mx-auto mt-5" role="status"></div>
+            <p class="text-muted mt-3 fw-bold">Sincronizzazione catalogo in corso...</p>
+          </div>
+
         </div>
-        <div class="col-md-6">
-          <label class="small text-muted fw-bold mb-1">Filtra per Sottocategoria</label>
-          <select id="filtro-sottocategoria" class="form-select bg-light" onchange="applicaFiltriGlobali()">
-            <option value="">Tutte le Sottocategorie</option>
-          </select>
-        </div>
-      </div>
-      
-      <div id="app" class="row text-center py-5">
-        <div class="spinner-border text-bordeaux mx-auto" role="status"></div>
-        <p class="text-muted mt-3 fw-bold">Sincronizzazione catalogo in corso...</p>
       </div>
     </div>
 
+    <!-- Barra Carrello -->
     <div class="bg-white p-3 cart-sticky d-flex justify-content-between align-items-center px-md-5">
       <div>
         <span class="text-muted text-uppercase small fw-bold">Totale Ordine:</span>
@@ -170,6 +205,7 @@
     </div>
   </div>
 
+  <!-- CHECKOUT -->
   <div id="checkout-section" class="container mt-4 mb-5" style="display: none;">
     <div class="full-page-card border-top-0" style="border-top: 6px solid var(--orange) !important;">
       <h3 class="fw-bold text-orange mb-4 border-bottom pb-3">Riepilogo e Spedizione</h3>
@@ -218,6 +254,7 @@
     </div>
   </div>
 
+  <!-- PROFILO -->
   <div id="profile-section" class="center-screen" style="display: none; align-items: flex-start; justify-content: flex-start; padding-top: 40px;">
     <div class="full-page-card text-center" style="max-width: 500px; border-top: 6px solid var(--bordeaux) !important;">
       <h4 class="mb-4 fw-bold text-bordeaux">Gestione Profilo B2B</h4>
@@ -243,6 +280,7 @@
     </div>
   </div>
 
+  <!-- MODALE DETTAGLIO PRODOTTO (PULITO) -->
   <div class="modal fade" id="prodottoModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content border-0 shadow-lg">
@@ -251,20 +289,22 @@
         </div>
         <div class="modal-body p-4 pt-0">
           <div class="row align-items-center">
-            <div class="col-md-6 text-center mb-3 mb-md-0">
-              <img id="modal-prod-img" src="" class="img-fluid rounded p-2 border" style="max-height: 350px; object-fit: contain;">
+            <div class="col-md-5 text-center mb-3 mb-md-0">
+              <img id="modal-prod-img" src="" class="img-fluid rounded p-2 border bg-white" style="max-height: 350px; object-fit: contain;">
             </div>
-            <div class="col-md-6">
+            <div class="col-md-7 ps-md-4">
               <span id="modal-prod-cat" class="badge bg-bordeaux mb-2"></span>
               <h4 id="modal-prod-title" class="fw-bold text-dark mb-1"></h4>
-              <p id="modal-prod-code" class="text-muted small mb-1" style="letter-spacing: 0.5px;"></p>
+              
+              <p id="modal-prod-code" class="text-muted small mb-2" style="letter-spacing: 0.5px;"></p>
               <p id="modal-prod-peso" class="text-secondary small fw-bold mb-3"></p>
               
               <h3 id="modal-prod-price" class="text-orange fw-bold mb-4"></h3>
               
-              <div class="border-top pt-3">
-                <h6 class="fw-bold text-secondary mb-2">Descrizione Prodotto:</h6>
-                <p id="modal-prod-desc" class="text-dark" style="white-space: pre-line; line-height: 1.5; font-size: 0.95rem;"></p>
+              <div class="border-top pt-3 mt-2">
+                <h6 class="fw-bold text-secondary mb-2 text-uppercase" style="font-size: 0.85rem;">Dettagli Articolo</h6>
+                <!-- Qui compare la descrizione (web o note) -->
+                <div id="modal-prod-desc" class="text-dark" style="line-height: 1.6; font-size: 0.95rem;"></div>
               </div>
             </div>
           </div>
@@ -281,6 +321,7 @@
     let cart = {}; 
     let utenteLoggato = null; 
     let tuttiProdotti = []; 
+    let categoriaSelezionata = "";
 
     function cambiaVista(vistaID) {
       document.getElementById('login-section').style.display = 'none';
@@ -393,27 +434,52 @@
 
       tuttiProdotti = prodotti;
       popolaFiltriIniziali(tuttiProdotti); 
-      disegnaProdotti(tuttiProdotti);
     }
 
     function popolaFiltriIniziali(prodotti) {
       const setCategorie = new Set();
       prodotti.forEach(p => { if (p['Categoria'] && p['Categoria'].trim() !== '') setCategorie.add(p['Categoria'].trim()); });
-      const catSelect = document.getElementById('filtro-categoria');
-      const subcatSelect = document.getElementById('filtro-sottocategoria');
-      catSelect.innerHTML = '<option value="">Tutte le Categorie</option>';
-      subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
-      subcatSelect.disabled = true; 
-      [...setCategorie].sort().forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
+      
+      const sidebar = document.getElementById('sidebar-categorie');
+      let html = `<button class="list-group-item active fw-bold" id="cat-btn-tutte" onclick="selezionaCategoria('')">Tutte le Categorie</button>`;
+      
+      [...setCategorie].sort().forEach(c => {
+        const safeId = "cat-" + c.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(); 
+        const safeCat = c.replace(/'/g, "\\'"); 
+        html += `<button class="list-group-item text-secondary fw-semibold" id="${safeId}" onclick="selezionaCategoria('${safeCat}')">${c}</button>`;
+      });
+      
+      sidebar.innerHTML = html;
+      selezionaCategoria("");
     }
 
-    function cambioCategoria() {
-      const catSelezionata = document.getElementById('filtro-categoria').value;
+    function selezionaCategoria(cat) {
+      categoriaSelezionata = cat;
+      
+      const bottoni = document.querySelectorAll('#sidebar-categorie button');
+      bottoni.forEach(b => {
+        b.classList.remove('active', 'fw-bold');
+        b.classList.add('text-secondary', 'fw-semibold');
+      });
+
+      let btnCliccato;
+      if (cat === "") {
+        btnCliccato = document.getElementById('cat-btn-tutte');
+      } else {
+        const safeId = "cat-" + cat.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        btnCliccato = document.getElementById(safeId);
+      }
+      
+      if (btnCliccato) {
+        btnCliccato.classList.remove('text-secondary', 'fw-semibold');
+        btnCliccato.classList.add('active', 'fw-bold');
+      }
+
       const subcatSelect = document.getElementById('filtro-sottocategoria');
       subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
       
-      if (catSelezionata !== "") {
-        const prodottiCat = tuttiProdotti.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
+      if (cat !== "") {
+        const prodottiCat = tuttiProdotti.filter(p => p['Categoria'] && p['Categoria'].trim() === cat);
         const setSottocategorie = new Set();
         prodottiCat.forEach(p => { if (p['Sottocategoria'] && p['Sottocategoria'].trim() !== '') setSottocategorie.add(p['Sottocategoria'].trim()); });
         if (setSottocategorie.size > 0) {
@@ -421,17 +487,19 @@
           [...setSottocategorie].sort().forEach(s => { subcatSelect.innerHTML += `<option value="${s}">${s}</option>`; });
         } else { subcatSelect.disabled = true; }
       } else { subcatSelect.disabled = true; }
+      
       applicaFiltriGlobali();
     }
 
     function applicaFiltriGlobali() {
-      const catSelezionata = document.getElementById('filtro-categoria').value;
       const subcatSelezionata = document.getElementById('filtro-sottocategoria').value;
       const testoRicerca = document.getElementById('filtro-testo').value.toLowerCase().trim();
       let prodottiFiltrati = tuttiProdotti;
       
-      if (catSelezionata !== "") prodottiFiltrati = prodottiFiltrati.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
+      if (categoriaSelezionata !== "") prodottiFiltrati = prodottiFiltrati.filter(p => p['Categoria'] && p['Categoria'].trim() === categoriaSelezionata);
+      
       if (subcatSelezionata !== "") prodottiFiltrati = prodottiFiltrati.filter(p => p['Sottocategoria'] && p['Sottocategoria'].trim() === subcatSelezionata);
+      
       if (testoRicerca !== "") {
         prodottiFiltrati = prodottiFiltrati.filter(p => {
           const desc = (p['Descrizione'] || "").toLowerCase();
@@ -444,7 +512,7 @@
 
     function disegnaProdotti(prodotti) {
       const app = document.getElementById('app');
-      if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-muted mt-4 fw-bold">Nessun prodotto trovato per questa ricerca.</p>`; return; }
+      if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-muted mt-4 fw-bold fs-5">Nessun prodotto trovato in questo reparto.</p>`; return; }
       
       let html = '';
       prodotti.forEach(p => {
@@ -466,8 +534,8 @@
         const catText = p['Categoria'] ? `<span class="badge bg-bordeaux mb-2 bg-opacity-75">${p['Categoria']}</span>` : '';
 
         html += `
-          <div class="col-lg-3 col-md-4 col-sm-6 product-card text-start">
-            <div class="card shadow-sm">
+          <div class="col-xl-3 col-lg-4 col-sm-6 product-card text-start">
+            <div class="card shadow-sm h-100">
               <div onclick="apriDettaglioProdotto('${cod}')" style="height: 180px; background: #fff; border-radius: 10px 10px 0 0; display: flex; align-items: center; justify-content: center; padding: 15px;">
                 <img src="${imgUrl}" class="product-img-click" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=NO+IMG';" style="max-height: 100%; max-width: 100%; object-fit: contain;">
               </div>
@@ -501,8 +569,15 @@
       document.getElementById('modal-prod-code').innerText = `CODICE: ${codice}`;
       document.getElementById('modal-prod-price').innerText = `€ ${prezzo.toFixed(2).replace('.', ',')}`;
       document.getElementById('modal-prod-cat').innerText = p['Categoria'] || 'Generico';
-      document.getElementById('modal-prod-desc').innerText = p['Note'] || 'Nessuna descrizione tecnica disponibile.';
       
+      // Descrizione (web o note)
+      const descHTML = document.getElementById('modal-prod-desc');
+      if (p['Descriz. web (Sorgente HTML)']) {
+          descHTML.innerHTML = p['Descriz. web (Sorgente HTML)'];
+      } else {
+          descHTML.innerText = p['Note'] || 'Nessuna descrizione tecnica disponibile.';
+      }
+
       let strP = "";
       if (p['Peso netto'] && p['Udm Peso']) strP = `Confezione da: ${p['Peso netto']} ${p['Udm Peso']}`;
       else if (p['Peso netto']) strP = `Peso: ${p['Peso netto']}`;
