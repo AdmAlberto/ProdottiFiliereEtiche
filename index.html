@@ -188,11 +188,16 @@
         <div class="col-md-9 col-lg-10">
           
           <div class="row mb-4 bg-white p-3 rounded shadow-sm border align-items-center" style="border-color: #f0e6e6 !important;">
-            <div class="col-md-8 mb-2 mb-md-0">
-              <input type="text" id="filtro-testo" class="form-control bg-light border-secondary-subtle py-2" placeholder="🔍 Cerca prodotto per nome o codice..." onkeyup="applicaFiltriGlobali()">
+            <div class="col-md-4 mb-2 mb-md-0">
+              <input type="text" id="filtro-testo" class="form-control bg-light border-secondary-subtle py-2" placeholder="🔍 Cerca nome o codice..." onkeyup="applicaFiltriGlobali()">
+            </div>
+            <div class="col-md-4 mb-2 mb-md-0">
+              <select id="filtro-categoria" class="form-select bg-light border-secondary-subtle py-2" onchange="cambioCategoriaDalDropdown()">
+                <option value="">Tutte le Categorie</option>
+              </select>
             </div>
             <div class="col-md-4">
-              <select id="filtro-sottocategoria" class="form-select bg-light" onchange="applicaFiltriGlobali()" disabled>
+              <select id="filtro-sottocategoria" class="form-select bg-light border-secondary-subtle py-2" onchange="applicaFiltriGlobali()" disabled>
                 <option value="">Tutte le Sottocategorie</option>
               </select>
             </div>
@@ -342,7 +347,6 @@
     let cart = {}; 
     let utenteLoggato = null; 
     let tuttiProdotti = []; 
-    let categoriaSelezionata = "";
 
     function cambiaVista(vistaID) {
       document.getElementById('login-section').style.display = 'none';
@@ -371,7 +375,6 @@
       const ragSoc = document.getElementById('reg-ragionesociale').value.trim();
       const piva = document.getElementById('reg-piva').value.trim();
       const tel = document.getElementById('reg-telefono').value.trim();
-      // Conversione in minuscolo!
       const email = document.getElementById('reg-email').value.trim().toLowerCase();
       const psw = document.getElementById('reg-password').value.trim();
       const btn = document.getElementById('btn-register');
@@ -400,7 +403,7 @@
       if (error) {
         alert("Errore registrazione: " + error.message);
       } else {
-        alert("Account creato con successo! Ora puoi accedere. Ricorda che i tuoi dati dovranno essere verificati dalla bottega.");
+        alert("Account creato con successo! Ora puoi accedere.");
         cambiaVista('login-section');
         document.getElementById('login-email').value = email;
       }
@@ -408,7 +411,6 @@
     }
 
     async function eseguiLogin() {
-      // Conversione automatica in minuscolo per evitare errori di digitazione
       const email = document.getElementById('login-email').value.trim().toLowerCase();
       const psw = document.getElementById('login-password').value.trim();
       const btn = document.getElementById('btn-login');
@@ -441,14 +443,10 @@
       const nuovaPsw = document.getElementById('prof-nuova-psw').value.trim();
       if(nuovaPsw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
 
-      // Cambiata logica: usiamo l'email per aggiornare al posto dell'ID
-      const { error } = await clientDB.from('clienti')
-          .update({ password: nuovaPsw })
-          .eq('email', utenteLoggato.email);
+      const { error } = await clientDB.from('clienti').update({ password: nuovaPsw }).eq('email', utenteLoggato.email);
           
       if (error) {
           alert("Errore dal server: " + error.message);
-          console.error("Dettaglio errore password:", error);
       } else { 
           alert("Password aggiornata con successo! 🔐"); 
           document.getElementById('prof-nuova-psw').value = ''; 
@@ -489,21 +487,39 @@
       prodotti.forEach(p => { if (p['Categoria'] && p['Categoria'].trim() !== '') setCategorie.add(p['Categoria'].trim()); });
       
       const sidebar = document.getElementById('sidebar-categorie');
-      let html = `<button class="list-group-item active fw-bold" id="cat-btn-tutte" onclick="selezionaCategoria('')">Tutte le Categorie</button>`;
+      const dropdownTop = document.getElementById('filtro-categoria');
+      
+      let htmlSidebar = `<button class="list-group-item active fw-bold" id="cat-btn-tutte" onclick="selezionaCategoria('')">Tutte le Categorie</button>`;
+      let htmlDropdown = `<option value="">Tutte le Categorie</option>`;
       
       [...setCategorie].sort().forEach(c => {
         const safeId = "cat-" + c.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(); 
         const safeCat = c.replace(/'/g, "\\'"); 
-        html += `<button class="list-group-item text-secondary fw-semibold" id="${safeId}" onclick="selezionaCategoria('${safeCat}')">${c}</button>`;
+        htmlSidebar += `<button class="list-group-item text-secondary fw-semibold" id="${safeId}" onclick="selezionaCategoria('${safeCat}')">${c}</button>`;
+        htmlDropdown += `<option value="${c}">${c}</option>`;
       });
       
-      sidebar.innerHTML = html;
-      selezionaCategoria("");
+      sidebar.innerHTML = htmlSidebar;
+      dropdownTop.innerHTML = htmlDropdown;
+      
+      selezionaCategoria("", false); 
     }
 
-    function selezionaCategoria(cat) {
-      categoriaSelezionata = cat;
+    // Innescata quando l'utente usa il menù a tendina in alto
+    function cambioCategoriaDalDropdown() {
+      const cat = document.getElementById('filtro-categoria').value;
+      selezionaCategoria(cat, false); // false = non sovrascrivere il dropdown
+    }
+
+    // Funzione unificata: gestisce sia il click sulla sidebar che il cambio dal dropdown
+    function selezionaCategoria(cat, aggiornaDropdown = true) {
       
+      // 1. Sincronizza Dropdown Superiore
+      if (aggiornaDropdown) {
+          document.getElementById('filtro-categoria').value = cat;
+      }
+
+      // 2. Sincronizza Grafica Sidebar
       const bottoni = document.querySelectorAll('#sidebar-categorie button');
       bottoni.forEach(b => {
         b.classList.remove('active', 'fw-bold');
@@ -523,6 +539,7 @@
         btnCliccato.classList.add('active', 'fw-bold');
       }
 
+      // 3. Popola Sottocategorie in alto
       const subcatSelect = document.getElementById('filtro-sottocategoria');
       subcatSelect.innerHTML = '<option value="">Tutte le Sottocategorie</option>';
       
@@ -536,11 +553,14 @@
         } else { subcatSelect.disabled = true; }
       } else { subcatSelect.disabled = true; }
       
-      const myOffcanvas = document.getElementById('sidebarMenu');
-      if (myOffcanvas) {
-          const bsOffcanvas = bootstrap.Offcanvas.getInstance(myOffcanvas);
-          if (bsOffcanvas && window.innerWidth < 768) {
-              bsOffcanvas.hide();
+      // 4. Se su mobile e il click viene dalla sidebar, chiudi l'offcanvas
+      if (aggiornaDropdown) {
+          const myOffcanvas = document.getElementById('sidebarMenu');
+          if (myOffcanvas) {
+              const bsOffcanvas = bootstrap.Offcanvas.getInstance(myOffcanvas);
+              if (bsOffcanvas && window.innerWidth < 768) {
+                  bsOffcanvas.hide();
+              }
           }
       }
 
@@ -548,12 +568,14 @@
     }
 
     function applicaFiltriGlobali() {
+      // Legge lo stato direttamente dai menù a tendina in alto
+      const catSelezionata = document.getElementById('filtro-categoria').value;
       const subcatSelezionata = document.getElementById('filtro-sottocategoria').value;
       const testoRicerca = document.getElementById('filtro-testo').value.toLowerCase().trim();
+      
       let prodottiFiltrati = tuttiProdotti;
       
-      if (categoriaSelezionata !== "") prodottiFiltrati = prodottiFiltrati.filter(p => p['Categoria'] && p['Categoria'].trim() === categoriaSelezionata);
-      
+      if (catSelezionata !== "") prodottiFiltrati = prodottiFiltrati.filter(p => p['Categoria'] && p['Categoria'].trim() === catSelezionata);
       if (subcatSelezionata !== "") prodottiFiltrati = prodottiFiltrati.filter(p => p['Sottocategoria'] && p['Sottocategoria'].trim() === subcatSelezionata);
       
       if (testoRicerca !== "") {
@@ -568,7 +590,7 @@
 
     function disegnaProdotti(prodotti) {
       const app = document.getElementById('app');
-      if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-muted mt-4 fw-bold fs-5">Nessun prodotto trovato in questo reparto.</p>`; return; }
+      if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-muted mt-4 fw-bold fs-5">Nessun prodotto trovato per questa ricerca.</p>`; return; }
       
       let html = '';
       prodotti.forEach(p => {
