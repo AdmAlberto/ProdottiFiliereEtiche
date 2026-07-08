@@ -448,13 +448,23 @@
       }
     }
 
-    async function salvaNuovaPassword() {
+    aasync function salvaNuovaPassword() {
       const nuovaPsw = document.getElementById('prof-nuova-psw').value.trim();
       if(nuovaPsw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
 
-      const { error } = await clientDB.from('clienti').update({ password: nuovaPsw }).eq('id', utenteLoggato.id);
-      if (error) alert("Errore aggiornamento password.");
-      else { alert("Password aggiornata con successo!"); document.getElementById('prof-nuova-psw').value = ''; }
+      // Usiamo l'email per trovare l'utente esatto nel database, molto più sicuro!
+      const { error } = await clientDB.from('clienti')
+          .update({ password: nuovaPsw })
+          .eq('email', utenteLoggato.email);
+          
+      if (error) {
+          alert("Errore dal server: " + error.message);
+          console.error("Dettaglio errore password:", error);
+      } else { 
+          alert("Password aggiornata con successo! 🔐"); 
+          document.getElementById('prof-nuova-psw').value = ''; 
+          utenteLoggato.password = nuovaPsw; // Aggiorna la password anche nella memoria temporanea del sito
+      }
     }
 
     function eseguiLogout() {
