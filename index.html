@@ -76,7 +76,6 @@
     .top-nav { background-color: var(--bordeaux); padding: 15px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;}
     .top-nav h4 { color: white; margin: 0; font-weight: bold; }
     
-    /* Regolazione pulsante hamburger */
     .btn-hamburger { border: none; font-size: 1.6rem; padding: 0 10px; color: white; background: transparent; line-height: 1; }
 
     .sidebar-menu .list-group-item {
@@ -99,6 +98,7 @@
 </head>
 <body>
 
+  <!-- LOGIN -->
   <div id="login-section" class="center-screen">
     <div class="auth-card text-center">
       <h3 class="mb-2 fw-bold text-bordeaux">Filiere Etiche ADM</h3>
@@ -120,16 +120,25 @@
     </div>
   </div>
 
-  <div id="register-section" class="center-screen" style="display: none;">
+  <!-- REGISTRAZIONE -->
+  <div id="register-section" class="center-screen" style="display: none; padding-top: 40px; padding-bottom: 40px;">
     <div class="auth-card text-center border-top-0" style="border-top: 6px solid var(--orange) !important;">
       <h4 class="mb-4 fw-bold text-orange">Nuovo Account B2B</h4>
       
       <div class="mb-3 text-start">
-        <label class="form-label text-muted small fw-bold">Ragione Sociale (o Nome)</label>
-        <input type="text" id="reg-ragionesociale" class="form-control" placeholder="es. Mario Rossi SRL">
+        <label class="form-label text-muted small fw-bold">Ragione Sociale (o Nome Gruppo)</label>
+        <input type="text" id="reg-ragionesociale" class="form-control" placeholder="es. Gruppo Scout Cittadella">
       </div>
       <div class="mb-3 text-start">
-        <label class="form-label text-muted small fw-bold">Indirizzo Email</label>
+        <label class="form-label text-muted small fw-bold">Partita IVA o Codice Fiscale</label>
+        <input type="text" id="reg-piva" class="form-control" placeholder="Opzionale per l'anagrafica">
+      </div>
+      <div class="mb-3 text-start">
+        <label class="form-label text-muted small fw-bold">Numero di Telefono</label>
+        <input type="tel" id="reg-telefono" class="form-control" placeholder="Per eventuali comunicazioni">
+      </div>
+      <div class="mb-3 text-start">
+        <label class="form-label text-muted small fw-bold">Indirizzo Email (Accesso)</label>
         <input type="email" id="reg-email" class="form-control" placeholder="es. mario@azienda.it">
       </div>
       <div class="mb-4 text-start">
@@ -143,6 +152,7 @@
     </div>
   </div>
 
+  <!-- NAVBAR -->
   <div id="main-navbar" class="top-nav" style="display: none;">
     <div class="d-flex align-items-center">
       <button class="btn-hamburger d-md-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" id="btn-hamburger-menu">
@@ -157,10 +167,12 @@
     </div>
   </div>
 
+  <!-- APP (CATALOGO CON SIDEBAR OFFCANVAS) -->
   <div id="app-section" style="display: none; padding-bottom: 90px;">
     <div class="container-fluid mt-4 px-md-4">
       <div class="row">
         
+        <!-- SIDEBAR CATEGORIE -->
         <div class="col-md-3 col-lg-2 mb-4">
           <div class="offcanvas-md offcanvas-start bg-light rounded-end shadow-sm" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
             <div class="offcanvas-header border-bottom">
@@ -172,12 +184,14 @@
               <div class="sticky-top" style="top: 20px; z-index: 1;">
                 <h5 class="fw-bold text-dark mb-3 ps-2 border-start border-4 border-bordeaux d-none d-md-block">Reparti</h5>
                 <div id="sidebar-categorie" class="list-group sidebar-menu bg-transparent w-100">
-                  </div>
+                  <!-- Categorie popolate dinamicamente -->
+                </div>
               </div>
             </div>
           </div>
         </div>
 
+        <!-- MAIN CONTENT (Griglia Prodotti) -->
         <div class="col-md-9 col-lg-10">
           
           <div class="row mb-4 bg-white p-3 rounded shadow-sm border align-items-center" style="border-color: #f0e6e6 !important;">
@@ -200,6 +214,7 @@
       </div>
     </div>
 
+    <!-- Barra Carrello -->
     <div class="bg-white p-3 cart-sticky d-flex justify-content-between align-items-center px-md-5">
       <div>
         <span class="text-muted text-uppercase small fw-bold">Totale Ordine:</span>
@@ -211,6 +226,7 @@
     </div>
   </div>
 
+  <!-- CHECKOUT -->
   <div id="checkout-section" class="container mt-4 mb-5" style="display: none;">
     <div class="full-page-card border-top-0" style="border-top: 6px solid var(--orange) !important;">
       <h3 class="fw-bold text-orange mb-4 border-bottom pb-3">Riepilogo e Spedizione</h3>
@@ -259,31 +275,45 @@
     </div>
   </div>
 
-  <div id="profile-section" class="center-screen" style="display: none; align-items: flex-start; justify-content: flex-start; padding-top: 40px;">
-    <div class="full-page-card text-center" style="max-width: 500px; border-top: 6px solid var(--bordeaux) !important;">
-      <h4 class="mb-4 fw-bold text-bordeaux">Gestione Profilo B2B</h4>
+  <!-- PROFILO BLINDATO -->
+  <div id="profile-section" class="center-screen" style="display: none; align-items: flex-start; justify-content: flex-start; padding-top: 40px; padding-bottom: 40px;">
+    <div class="full-page-card border-top-0" style="max-width: 600px; border-top: 6px solid var(--bordeaux) !important;">
+      <h3 class="mb-1 fw-bold text-bordeaux">Il Tuo Profilo</h3>
+      <p class="text-muted small mb-4">I dati di fatturazione e contatto sono gestiti dalla bottega.</p>
       
-      <div class="mb-3 text-start">
-        <label class="text-muted small fw-bold">Ragione Sociale</label>
-        <input type="text" class="form-control bg-light text-dark fw-semibold border-0" id="prof-ragione" readonly>
-      </div>
-      <div class="mb-4 text-start">
-        <label class="text-muted small fw-bold">Email (Username)</label>
-        <input type="text" class="form-control bg-light text-dark fw-semibold border-0" id="prof-email" readonly>
+      <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+          <label class="text-muted small fw-bold">Ragione Sociale</label>
+          <input type="text" class="form-control bg-light text-secondary fw-semibold border-secondary-subtle" id="prof-ragione" readonly>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="text-muted small fw-bold">Email (Username)</label>
+          <input type="text" class="form-control bg-light text-secondary fw-semibold border-secondary-subtle" id="prof-email" readonly>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="text-muted small fw-bold">Partita IVA / C.F.</label>
+          <input type="text" class="form-control bg-light text-secondary fw-semibold border-secondary-subtle" id="prof-piva" readonly>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="text-muted small fw-bold">Telefono</label>
+          <input type="text" class="form-control bg-light text-secondary fw-semibold border-secondary-subtle" id="prof-telefono" readonly>
+        </div>
       </div>
       
       <hr style="opacity: 0.1;">
-      <h6 class="fw-bold text-orange mb-3 text-start">Cambia Password</h6>
+      <h6 class="fw-bold text-orange mb-3 mt-4">Gestione Sicurezza</h6>
       <div class="mb-3">
-        <input type="password" class="form-control" id="prof-nuova-psw" placeholder="Inserisci la nuova password">
+        <label class="text-muted small fw-bold">Nuova Password</label>
+        <input type="password" class="form-control border-secondary-subtle" id="prof-nuova-psw" placeholder="Inserisci per aggiornare la password">
       </div>
-      <button class="btn btn-outline-bordeaux w-100 py-2 mb-3" onclick="salvaNuovaPassword()">Aggiorna Password</button>
+      <button class="btn btn-outline-bordeaux w-100 py-2 mb-3 fw-bold" onclick="salvaNuovaPassword()">Aggiorna Password</button>
       
-      <hr style="opacity: 0.1;">
-      <button class="btn btn-danger w-100 py-2 fw-bold" onclick="eseguiLogout()">🚪 Disconnetti Account</button>
+      <hr style="opacity: 0.1;" class="mt-4">
+      <button class="btn btn-light text-danger border-danger w-100 py-2 fw-bold shadow-sm" onclick="eseguiLogout()">🚪 Disconnetti Account</button>
     </div>
   </div>
 
+  <!-- MODALE DETTAGLIO PRODOTTO (PULITO) -->
   <div class="modal fade" id="prodottoModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content border-0 shadow-lg">
@@ -306,6 +336,7 @@
               
               <div class="border-top pt-3 mt-2">
                 <h6 class="fw-bold text-secondary mb-2 text-uppercase" style="font-size: 0.85rem;">Dettagli Articolo</h6>
+                <!-- Qui compare la descrizione (web o note) -->
                 <div id="modal-prod-desc" class="text-dark" style="line-height: 1.6; font-size: 0.95rem;"></div>
               </div>
             </div>
@@ -337,10 +368,10 @@
       if(utenteLoggato && (vistaID === 'app-section' || vistaID === 'profile-section' || vistaID === 'checkout-section')) {
         document.getElementById('main-navbar').style.display = 'flex';
         if (vistaID === 'profile-section' || vistaID === 'checkout-section') {
-            document.getElementById('btn-hamburger-menu').classList.add('d-none'); // Nasconde hamburger nelle altre viste
+            document.getElementById('btn-hamburger-menu').classList.add('d-none');
             document.getElementById('btn-back-catalog').classList.remove('d-none');
         } else {
-            document.getElementById('btn-hamburger-menu').classList.remove('d-none'); // Mostra hamburger nel catalogo
+            document.getElementById('btn-hamburger-menu').classList.remove('d-none');
             document.getElementById('btn-back-catalog').classList.add('d-none');
         }
       } else {
@@ -350,11 +381,13 @@
 
     async function eseguiRegistrazione() {
       const ragSoc = document.getElementById('reg-ragionesociale').value.trim();
+      const piva = document.getElementById('reg-piva').value.trim();
+      const tel = document.getElementById('reg-telefono').value.trim();
       const email = document.getElementById('reg-email').value.trim();
       const psw = document.getElementById('reg-password').value.trim();
       const btn = document.getElementById('btn-register');
 
-      if(!ragSoc || !email || !psw) return alert("Compila tutti i campi!");
+      if(!ragSoc || !email || !psw) return alert("Compila almeno Ragione Sociale, Email e Password!");
       if(psw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
 
       btn.innerText = "Creazione in corso..."; btn.disabled = true;
@@ -366,11 +399,19 @@
         return;
       }
 
-      const { error } = await clientDB.from('clienti').insert([{ email: email, password: psw, ragione_sociale: ragSoc, listino: 1 }]);
+      const { error } = await clientDB.from('clienti').insert([{ 
+          email: email, 
+          password: psw, 
+          ragione_sociale: ragSoc, 
+          partita_iva: piva,
+          telefono: tel,
+          listino: 1 // Default
+      }]);
+
       if (error) {
         alert("Errore registrazione: " + error.message);
       } else {
-        alert("Account creato con successo! Ora puoi accedere.");
+        alert("Account creato con successo! Ora puoi accedere. Ricorda che i tuoi dati dovranno essere verificati dalla bottega.");
         cambiaVista('login-section');
         document.getElementById('login-email').value = email;
       }
@@ -395,8 +436,12 @@
         if (!utenteLoggato.listino) utenteLoggato.listino = 1;
 
         document.getElementById('nome-cliente-display').innerText = `${utenteLoggato.ragione_sociale} (L${utenteLoggato.listino})`; 
-        document.getElementById('prof-ragione').value = utenteLoggato.ragione_sociale;
-        document.getElementById('prof-email').value = utenteLoggato.email;
+        
+        // Popola i campi del profilo bloccati
+        document.getElementById('prof-ragione').value = utenteLoggato.ragione_sociale || '';
+        document.getElementById('prof-email').value = utenteLoggato.email || '';
+        document.getElementById('prof-piva').value = utenteLoggato.partita_iva || 'Non inserita';
+        document.getElementById('prof-telefono').value = utenteLoggato.telefono || 'Non inserito';
 
         cambiaVista('app-section');
         caricaCatalogo();
@@ -492,11 +537,9 @@
         } else { subcatSelect.disabled = true; }
       } else { subcatSelect.disabled = true; }
       
-      // LOGICA PER CHIUDERE IL MENU LATERALE SU MOBILE DOPO IL CLICK
       const myOffcanvas = document.getElementById('sidebarMenu');
       if (myOffcanvas) {
           const bsOffcanvas = bootstrap.Offcanvas.getInstance(myOffcanvas);
-          // Chiudi solo se siamo su schermi piccoli (mobile/tablet)
           if (bsOffcanvas && window.innerWidth < 768) {
               bsOffcanvas.hide();
           }
@@ -584,7 +627,6 @@
       document.getElementById('modal-prod-price').innerText = `€ ${prezzo.toFixed(2).replace('.', ',')}`;
       document.getElementById('modal-prod-cat').innerText = p['Categoria'] || 'Generico';
       
-      // Descrizione (web o note)
       const descHTML = document.getElementById('modal-prod-desc');
       if (p['Descriz. web (Sorgente HTML)']) {
           descHTML.innerHTML = p['Descriz. web (Sorgente HTML)'];
