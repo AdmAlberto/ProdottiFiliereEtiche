@@ -75,7 +75,9 @@
 
     .top-nav { background-color: var(--bordeaux); padding: 15px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;}
     .top-nav h4 { color: white; margin: 0; font-weight: bold; }
-    .top-nav-buttons button { margin-left: 10px; }
+    
+    /* Regolazione pulsante hamburger */
+    .btn-hamburger { border: none; font-size: 1.6rem; padding: 0 10px; color: white; background: transparent; line-height: 1; }
 
     .sidebar-menu .list-group-item {
         border: none;
@@ -97,7 +99,6 @@
 </head>
 <body>
 
-  <!-- LOGIN -->
   <div id="login-section" class="center-screen">
     <div class="auth-card text-center">
       <h3 class="mb-2 fw-bold text-bordeaux">Filiere Etiche ADM</h3>
@@ -119,7 +120,6 @@
     </div>
   </div>
 
-  <!-- REGISTRAZIONE -->
   <div id="register-section" class="center-screen" style="display: none;">
     <div class="auth-card text-center border-top-0" style="border-top: 6px solid var(--orange) !important;">
       <h4 class="mb-4 fw-bold text-orange">Nuovo Account B2B</h4>
@@ -143,35 +143,43 @@
     </div>
   </div>
 
-  <!-- NAVBAR -->
   <div id="main-navbar" class="top-nav" style="display: none;">
-    <h4>Filiere Etiche ADM</h4>
-    <div class="top-nav-buttons">
-      <span class="badge bg-white text-bordeaux fs-6 px-3 py-2 shadow-sm" id="nome-cliente-display" style="border-radius: 20px;"></span>
-      <button class="btn btn-sm btn-outline-light fw-bold shadow-sm" onclick="cambiaVista('profile-section')">⚙️ Profilo</button>
-      <button class="btn btn-sm btn-light text-bordeaux fw-bold shadow-sm d-none" id="btn-back-catalog" onclick="cambiaVista('app-section')">Torna al Catalogo</button>
+    <div class="d-flex align-items-center">
+      <button class="btn-hamburger d-md-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" id="btn-hamburger-menu">
+        &#9776;
+      </button>
+      <h4 class="mb-0 text-white fw-bold">Filiere Etiche ADM</h4>
+    </div>
+    <div class="top-nav-buttons d-flex align-items-center">
+      <span class="badge bg-white text-bordeaux fs-6 px-3 py-2 shadow-sm d-none d-sm-block" id="nome-cliente-display" style="border-radius: 20px;"></span>
+      <button class="btn btn-sm btn-outline-light fw-bold shadow-sm ms-2" onclick="cambiaVista('profile-section')">⚙️ Profilo</button>
+      <button class="btn btn-sm btn-light text-bordeaux fw-bold shadow-sm d-none ms-2" id="btn-back-catalog" onclick="cambiaVista('app-section')">Torna al Catalogo</button>
     </div>
   </div>
 
-  <!-- APP (CATALOGO CON SIDEBAR) -->
   <div id="app-section" style="display: none; padding-bottom: 90px;">
-    <div class="container-fluid mt-4 px-md-5">
+    <div class="container-fluid mt-4 px-md-4">
       <div class="row">
         
-        <!-- SIDEBAR CATEGORIE -->
         <div class="col-md-3 col-lg-2 mb-4">
-          <div class="sticky-top" style="top: 20px; z-index: 1;">
-            <h5 class="fw-bold text-dark mb-3 ps-2 border-start border-4 border-bordeaux">Reparti</h5>
-            <div id="sidebar-categorie" class="list-group sidebar-menu bg-transparent">
-              <!-- Categorie popolate dinamicamente -->
+          <div class="offcanvas-md offcanvas-start bg-light rounded-end shadow-sm" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
+            <div class="offcanvas-header border-bottom">
+              <h5 class="offcanvas-title fw-bold text-bordeaux" id="sidebarMenuLabel">Sfoglia Reparti</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu" aria-label="Close"></button>
+            </div>
+            
+            <div class="offcanvas-body d-flex flex-column pt-md-2 p-3 p-md-0">
+              <div class="sticky-top" style="top: 20px; z-index: 1;">
+                <h5 class="fw-bold text-dark mb-3 ps-2 border-start border-4 border-bordeaux d-none d-md-block">Reparti</h5>
+                <div id="sidebar-categorie" class="list-group sidebar-menu bg-transparent w-100">
+                  </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- MAIN CONTENT -->
         <div class="col-md-9 col-lg-10">
           
-          <!-- Barra Ricerca -->
           <div class="row mb-4 bg-white p-3 rounded shadow-sm border align-items-center" style="border-color: #f0e6e6 !important;">
             <div class="col-md-8 mb-2 mb-md-0">
               <input type="text" id="filtro-testo" class="form-control bg-light border-secondary-subtle py-2" placeholder="🔍 Cerca prodotto per nome o codice..." onkeyup="applicaFiltriGlobali()">
@@ -183,7 +191,6 @@
             </div>
           </div>
           
-          <!-- Griglia Prodotti -->
           <div id="app" class="row text-center py-2">
             <div class="spinner-border text-bordeaux mx-auto mt-5" role="status"></div>
             <p class="text-muted mt-3 fw-bold">Sincronizzazione catalogo in corso...</p>
@@ -193,7 +200,6 @@
       </div>
     </div>
 
-    <!-- Barra Carrello -->
     <div class="bg-white p-3 cart-sticky d-flex justify-content-between align-items-center px-md-5">
       <div>
         <span class="text-muted text-uppercase small fw-bold">Totale Ordine:</span>
@@ -205,7 +211,6 @@
     </div>
   </div>
 
-  <!-- CHECKOUT -->
   <div id="checkout-section" class="container mt-4 mb-5" style="display: none;">
     <div class="full-page-card border-top-0" style="border-top: 6px solid var(--orange) !important;">
       <h3 class="fw-bold text-orange mb-4 border-bottom pb-3">Riepilogo e Spedizione</h3>
@@ -254,7 +259,6 @@
     </div>
   </div>
 
-  <!-- PROFILO -->
   <div id="profile-section" class="center-screen" style="display: none; align-items: flex-start; justify-content: flex-start; padding-top: 40px;">
     <div class="full-page-card text-center" style="max-width: 500px; border-top: 6px solid var(--bordeaux) !important;">
       <h4 class="mb-4 fw-bold text-bordeaux">Gestione Profilo B2B</h4>
@@ -280,7 +284,6 @@
     </div>
   </div>
 
-  <!-- MODALE DETTAGLIO PRODOTTO (PULITO) -->
   <div class="modal fade" id="prodottoModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content border-0 shadow-lg">
@@ -303,7 +306,6 @@
               
               <div class="border-top pt-3 mt-2">
                 <h6 class="fw-bold text-secondary mb-2 text-uppercase" style="font-size: 0.85rem;">Dettagli Articolo</h6>
-                <!-- Qui compare la descrizione (web o note) -->
                 <div id="modal-prod-desc" class="text-dark" style="line-height: 1.6; font-size: 0.95rem;"></div>
               </div>
             </div>
@@ -335,8 +337,10 @@
       if(utenteLoggato && (vistaID === 'app-section' || vistaID === 'profile-section' || vistaID === 'checkout-section')) {
         document.getElementById('main-navbar').style.display = 'flex';
         if (vistaID === 'profile-section' || vistaID === 'checkout-section') {
+            document.getElementById('btn-hamburger-menu').classList.add('d-none'); // Nasconde hamburger nelle altre viste
             document.getElementById('btn-back-catalog').classList.remove('d-none');
         } else {
+            document.getElementById('btn-hamburger-menu').classList.remove('d-none'); // Mostra hamburger nel catalogo
             document.getElementById('btn-back-catalog').classList.add('d-none');
         }
       } else {
@@ -488,6 +492,16 @@
         } else { subcatSelect.disabled = true; }
       } else { subcatSelect.disabled = true; }
       
+      // LOGICA PER CHIUDERE IL MENU LATERALE SU MOBILE DOPO IL CLICK
+      const myOffcanvas = document.getElementById('sidebarMenu');
+      if (myOffcanvas) {
+          const bsOffcanvas = bootstrap.Offcanvas.getInstance(myOffcanvas);
+          // Chiudi solo se siamo su schermi piccoli (mobile/tablet)
+          if (bsOffcanvas && window.innerWidth < 768) {
+              bsOffcanvas.hide();
+          }
+      }
+
       applicaFiltriGlobali();
     }
 
