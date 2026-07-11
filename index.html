@@ -80,7 +80,6 @@
     .order-card { border-left: 5px solid var(--bordeaux) !important; transition: 0.2s; }
     .order-card:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
     
-    /* Nuovo stile per le intestazioni di categoria */
     .categoria-header {
         border-bottom: 3px solid #f0e6e6;
         margin-bottom: 20px;
@@ -94,7 +93,13 @@
         display: inline-block;
         border-bottom: 3px solid var(--orange);
         padding-bottom: 8px;
-        margin-bottom: -13px; /* Sovrappone al bordo grigio */
+        margin-bottom: -13px; 
+    }
+    
+    .eye-btn {
+        cursor: pointer;
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
     }
   </style>
 </head>
@@ -112,7 +117,10 @@
       </div>
       <div class="mb-4 text-start">
         <label class="form-label text-muted small fw-bold">Password</label>
-        <input type="password" id="login-password" class="form-control" placeholder="Inserire password">
+        <div class="input-group">
+          <input type="password" id="login-password" class="form-control" placeholder="Inserire password">
+          <button class="btn eye-btn" type="button" onclick="togglePassword('login-password')">👁️</button>
+        </div>
       </div>
       <button class="btn btn-bordeaux w-100 fw-bold py-2 shadow-sm" onclick="eseguiLogin()" id="btn-login">Accedi al Portale</button>
       <p id="login-error" class="text-danger mt-3 mb-0 fw-bold" style="display:none;">Credenziali errate o account non verificato.</p>
@@ -128,7 +136,7 @@
       <h4 class="mb-4 fw-bold text-orange">Nuovo Account B2B</h4>
       
       <div class="mb-3 text-start">
-        <label class="form-label text-muted small fw-bold">Ragione Sociale (o Nome Gruppo)</label>
+        <label class="form-label text-muted small fw-bold">Ragione Sociale (o Nome, o Gruppo)</label>
         <input type="text" id="reg-ragionesociale" class="form-control">
       </div>
       <div class="mb-3 text-start">
@@ -145,7 +153,10 @@
       </div>
       <div class="mb-4 text-start">
         <label class="form-label text-muted small fw-bold">Scegli una Password</label>
-        <input type="password" id="reg-password" class="form-control" placeholder="Minimo 6 caratteri">
+        <div class="input-group">
+          <input type="password" id="reg-password" class="form-control" placeholder="Minimo 6 caratteri">
+          <button class="btn eye-btn" type="button" onclick="togglePassword('reg-password')">👁️</button>
+        </div>
       </div>
       <button class="btn btn-orange w-100 fw-bold py-2 shadow-sm" onclick="eseguiRegistrazione()" id="btn-register">Crea Account Sicuro</button>
       
@@ -296,7 +307,10 @@
             <hr style="opacity: 0.1;">
             <h6 class="fw-bold text-orange mb-3 mt-4">Cambio Password</h6>
             <div class="mb-3">
-              <input type="password" class="form-control" id="prof-nuova-psw" placeholder="Inserisci la nuova password">
+              <div class="input-group">
+                <input type="password" class="form-control" id="prof-nuova-psw" placeholder="Inserisci la nuova password">
+                <button class="btn eye-btn" type="button" onclick="togglePassword('prof-nuova-psw')">👁️</button>
+              </div>
             </div>
             <button class="btn btn-outline-bordeaux w-100 py-2 mb-3 fw-bold" onclick="salvaNuovaPassword()">Aggiorna Password</button>
           </div>
@@ -373,7 +387,17 @@
     let utenteLoggato = null; 
     let tuttiProdotti = []; 
 
-    // Nuova funzione per pulire le categorie dalla "A-"
+    // Funzione per Mostrare/Nascondere le Password
+    function togglePassword(fieldId) {
+      const field = document.getElementById(fieldId);
+      if (field.type === "password") {
+        field.type = "text";
+      } else {
+        field.type = "password";
+      }
+    }
+
+    // Funzione per pulire le categorie dalla "A-"
     function pulisciCategoria(catName) {
         if (!catName) return 'Altro';
         return catName.replace(/^[Aa]\s*-\s*/, '').trim();
@@ -475,11 +499,11 @@
       if (dbError) {
           alert("Attenzione: utente creato, ma anagrafica non salvata: " + dbError.message);
       } else {
-          alert("Account protetto creato con successo! 🎉 Ora puoi effettuare il login.");
+          alert("Account protetto creato con successo! Ora puoi effettuare il login.");
           cambiaVista('login-section');
           document.getElementById('login-email').value = email;
       }
-      btn.innerText = "Crea Account Sicuro"; btn.disabled = false;
+      btn.innerText = "Crea Account"; btn.disabled = false;
     }
 
     async function eseguiLogin() {
@@ -568,7 +592,6 @@
       const dropdownCat = document.getElementById('filtro-categoria');
       let htmlDropdown = `<option value="">Tutte le Categorie</option>`;
       [...setCategorie].sort().forEach(c => { 
-          // Nel value manteniamo l'originale (es. "A-Pasta"), nel testo mostriamo quella pulita ("Pasta")
           htmlDropdown += `<option value="${c}">${pulisciCategoria(c)}</option>`; 
       });
       dropdownCat.innerHTML = htmlDropdown;
@@ -613,7 +636,6 @@
       const app = document.getElementById('app');
       if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-muted mt-4 fw-bold fs-5">Nessun prodotto trovato per questa ricerca.</p>`; return; }
       
-      // Raggruppiamo i prodotti per Categoria
       const raggruppati = {};
       prodotti.forEach(p => {
           const cat = p['Categoria'] || 'Senza Categoria';
@@ -622,20 +644,16 @@
       });
       
       let html = '';
-      
-      // Ordiniamo le categorie in ordine alfabetico
       const categorieOrdinate = Object.keys(raggruppati).sort();
 
       categorieOrdinate.forEach(catOriginale => {
           const catPulita = pulisciCategoria(catOriginale);
           
-          // Inseriamo il Titolo della Categoria
           html += `
           <div class="col-12 categoria-header mt-4">
               <h4>${catPulita}</h4>
           </div>`;
 
-          // Generiamo le card dei prodotti per questa categoria
           raggruppati[catOriginale].forEach(p => {
             const cod = p['Cod.']; if(!cod) return; 
             const desc = p['Descrizione'] || 'N/D';
@@ -709,7 +727,6 @@
       document.getElementById('modal-prod-code').innerText = `CODICE: ${codice}`;
       document.getElementById('modal-prod-price').innerHTML = stringaPrezzoHtml;
       
-      // Mostriamo la categoria pulita anche nel modale
       document.getElementById('modal-prod-cat').innerText = pulisciCategoria(p['Categoria']);
       
       document.getElementById('modal-prod-fornitore').innerHTML = p['Fornitore'] ? `<span class="text-orange">Fornitore:</span> ${formattaFornitore(p['Fornitore'])}` : '';
