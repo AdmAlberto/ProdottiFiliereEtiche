@@ -427,6 +427,9 @@
       if(psw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
       btn.innerText = "Creazione in corso..."; btn.disabled = true;
 
+      // Generiamo un codice univoco per i nuovi iscritti dal web (es. WEB-59382)
+      const codiceTemporaneo = "WEB-" + Math.floor(Math.random() * 100000);
+
       // 1. Creazione Utente Sicuro in Auth
       const { data: authData, error: authError } = await clientDB.auth.signUp({
         email: email,
@@ -439,10 +442,7 @@
         return;
       }
 
-    // Generiamo un codice univoco per i nuovi iscritti dal web (es. WEB-59382)
-      const codiceTemporaneo = "WEB-" + Math.floor(Math.random() * 100000);
-
-      // 2. Inserimento dell'anagrafica nella tabella clienti
+      // 2. Inserimento dell'anagrafica nella tabella clienti con codice_danea
       const { error: dbError } = await clientDB.from('clienti').insert([{ 
           email: email, 
           password: psw, 
@@ -450,8 +450,18 @@
           partita_iva: piva, 
           telefono: tel, 
           listino: 1,
-          codice_danea: codiceTemporaneo // Diamo in pasto la chiave primaria!
+          codice_danea: codiceTemporaneo 
       }]);
+
+      if (dbError) {
+          alert("Attenzione: utente creato, ma anagrafica non salvata: " + dbError.message);
+      } else {
+          alert("Account protetto creato con successo! 🎉 Ora puoi effettuare il login.");
+          cambiaVista('login-section');
+          document.getElementById('login-email').value = email;
+      }
+      btn.innerText = "Crea Account Sicuro"; btn.disabled = false;
+    }
 
     // --- NUOVO LOGIN SICURO TRAMITE SUPABASE AUTH ---
     async function eseguiLogin() {
@@ -475,7 +485,7 @@
         return;
       }
 
-      // 2. Lettura Anagrafica (Ora permessa dalle Policy RLS perché siamo loggati!)
+      // 2. Lettura Anagrafica
       const { data: clienteData, error: dbError } = await clientDB.from('clienti').select('*').eq('email', email).single();
 
       if (dbError || !clienteData) {
@@ -519,7 +529,6 @@
     }
 
     async function eseguiLogout() {
-      // Chiude la sessione crittografata in Supabase Auth
       await clientDB.auth.signOut();
       
       utenteLoggato = null; cart = {};
@@ -530,7 +539,6 @@
       aggiornaInterfacciaCarrello(); cambiaVista('login-section');
     }
 
-    // GESTIONE CATALOGO E CARRELLO INVARIATA (ora protetta dalle RLS di lettura)
     async function caricaCatalogo() {
       const app = document.getElementById('app');
       let { data: prodotti, error } = await clientDB.from('prodotti').select('*')
