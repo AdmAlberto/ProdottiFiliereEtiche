@@ -79,6 +79,23 @@
     
     .order-card { border-left: 5px solid var(--bordeaux) !important; transition: 0.2s; }
     .order-card:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+    
+    /* Nuovo stile per le intestazioni di categoria */
+    .categoria-header {
+        border-bottom: 3px solid #f0e6e6;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        text-align: left;
+    }
+    .categoria-header h4 {
+        color: var(--bordeaux);
+        font-weight: 800;
+        margin: 0;
+        display: inline-block;
+        border-bottom: 3px solid var(--orange);
+        padding-bottom: 8px;
+        margin-bottom: -13px; /* Sovrappone al bordo grigio */
+    }
   </style>
 </head>
 <body>
@@ -87,7 +104,7 @@
   <div id="login-section" class="center-screen">
     <div class="auth-card text-center">
       <h3 class="mb-2 fw-bold text-bordeaux">Filiere Etiche ADM</h3>
-      <p class="text-orange fw-semibold mb-4">Portale Ordini ADM (Sicuro)</p>
+      <p class="text-orange fw-semibold mb-4">Portale Ordini ADM</p>
       
       <div class="mb-3 text-start">
         <label class="form-label text-muted small fw-bold">Indirizzo Email</label>
@@ -101,7 +118,7 @@
       <p id="login-error" class="text-danger mt-3 mb-0 fw-bold" style="display:none;">Credenziali errate o account non verificato.</p>
       
       <hr class="mt-4 mb-3" style="opacity: 0.1;">
-      <p class="small text-muted mb-0">Sei un nuovo cliente? <a href="#" onclick="cambiaVista('register-section')" class="text-bordeaux fw-bold text-decoration-none">Registrati ora</a></p>
+      <p class="small text-muted mb-0">Sei un nuovo cliente? <a href="#" onclick="event.preventDefault(); cambiaVista('register-section')" class="text-bordeaux fw-bold text-decoration-none">Registrati ora</a></p>
     </div>
   </div>
 
@@ -133,7 +150,7 @@
       <button class="btn btn-orange w-100 fw-bold py-2 shadow-sm" onclick="eseguiRegistrazione()" id="btn-register">Crea Account Sicuro</button>
       
       <hr class="mt-4 mb-3" style="opacity: 0.1;">
-      <p class="small text-muted mb-0">Hai già un account? <a href="#" onclick="cambiaVista('login-section')" class="text-orange fw-bold text-decoration-none">Torna al Login</a></p>
+      <p class="small text-muted mb-0">Hai già un account? <a href="#" onclick="event.preventDefault(); cambiaVista('login-section')" class="text-orange fw-bold text-decoration-none">Torna al Login</a></p>
     </div>
   </div>
 
@@ -356,6 +373,12 @@
     let utenteLoggato = null; 
     let tuttiProdotti = []; 
 
+    // Nuova funzione per pulire le categorie dalla "A-"
+    function pulisciCategoria(catName) {
+        if (!catName) return 'Altro';
+        return catName.replace(/^[Aa]\s*-\s*/, '').trim();
+    }
+
     function formattaFornitore(nomeFull) {
         if (!nomeFull) return '';
         const n = nomeFull.toLowerCase();
@@ -414,7 +437,6 @@
       }
     }
 
-    // --- NUOVA REGISTRAZIONE SICURA TRAMITE SUPABASE AUTH ---
     async function eseguiRegistrazione() {
       const ragSoc = document.getElementById('reg-ragionesociale').value.trim();
       const piva = document.getElementById('reg-piva').value.trim();
@@ -427,10 +449,8 @@
       if(psw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
       btn.innerText = "Creazione in corso..."; btn.disabled = true;
 
-      // Generiamo un codice univoco per i nuovi iscritti dal web (es. WEB-59382)
       const codiceTemporaneo = "WEB-" + Math.floor(Math.random() * 100000);
 
-      // 1. Creazione Utente Sicuro in Auth
       const { data: authData, error: authError } = await clientDB.auth.signUp({
         email: email,
         password: psw
@@ -442,7 +462,6 @@
         return;
       }
 
-      // 2. Inserimento dell'anagrafica nella tabella clienti con codice_danea
       const { error: dbError } = await clientDB.from('clienti').insert([{ 
           email: email, 
           password: psw, 
@@ -463,7 +482,6 @@
       btn.innerText = "Crea Account Sicuro"; btn.disabled = false;
     }
 
-    // --- NUOVO LOGIN SICURO TRAMITE SUPABASE AUTH ---
     async function eseguiLogin() {
       const email = document.getElementById('login-email').value.trim().toLowerCase();
       const psw = document.getElementById('login-password').value.trim();
@@ -473,7 +491,6 @@
       if(!email || !psw) return;
       btn.innerText = "Autenticazione in corso..."; btn.disabled = true; errorMsg.style.display = 'none';
 
-      // 1. Validazione crittografata con Auth
       const { data: authData, error: authError } = await clientDB.auth.signInWithPassword({
         email: email,
         password: psw
@@ -485,7 +502,6 @@
         return;
       }
 
-      // 2. Lettura Anagrafica
       const { data: clienteData, error: dbError } = await clientDB.from('clienti').select('*').eq('email', email).single();
 
       if (dbError || !clienteData) {
@@ -509,18 +525,15 @@
       caricaCatalogo();
     }
 
-    // --- NUOVO CAMBIO PASSWORD SICURO ---
     async function salvaNuovaPassword() {
       const nuovaPsw = document.getElementById('prof-nuova-psw').value.trim();
       if(nuovaPsw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
       
-      // Aggiorna l'identità criptata in Auth
       const { data, error: authError } = await clientDB.auth.updateUser({ password: nuovaPsw });
       
       if (authError) { 
           alert("Errore aggiornamento sicurezza: " + authError.message); 
       } else { 
-          // Aggiorniamo anche il vecchio campo in tabella clienti per consistenza
           await clientDB.from('clienti').update({ password: nuovaPsw }).eq('email', utenteLoggato.email);
           alert("Password aggiornata in modo sicuro! 🔐"); 
           document.getElementById('prof-nuova-psw').value = ''; 
@@ -554,7 +567,10 @@
       
       const dropdownCat = document.getElementById('filtro-categoria');
       let htmlDropdown = `<option value="">Tutte le Categorie</option>`;
-      [...setCategorie].sort().forEach(c => { htmlDropdown += `<option value="${c}">${c}</option>`; });
+      [...setCategorie].sort().forEach(c => { 
+          // Nel value manteniamo l'originale (es. "A-Pasta"), nel testo mostriamo quella pulita ("Pasta")
+          htmlDropdown += `<option value="${c}">${pulisciCategoria(c)}</option>`; 
+      });
       dropdownCat.innerHTML = htmlDropdown;
       
       applicaFiltriGlobali(true); 
@@ -597,54 +613,76 @@
       const app = document.getElementById('app');
       if (!prodotti || prodotti.length === 0) { app.innerHTML = `<p class="text-muted mt-4 fw-bold fs-5">Nessun prodotto trovato per questa ricerca.</p>`; return; }
       
-      let html = '';
+      // Raggruppiamo i prodotti per Categoria
+      const raggruppati = {};
       prodotti.forEach(p => {
-        const cod = p['Cod.']; if(!cod) return; 
-        const desc = p['Descrizione'] || 'N/D';
-        const imgUrl = 'https://plwzkcpujktjqznvwkzb.supabase.co/storage/v1/object/public/BIrre/' + cod + '.jpg';
-        
-        let rawPrice1 = p['Listino 1 (ivato)'] || "0";
-        let rawPriceUser = p[`Listino ${utenteLoggato.listino} (ivato)`] || rawPrice1;
-        
-        const prezzoBase = parseFloat(rawPrice1.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
-        const prezzoUser = parseFloat(rawPriceUser.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
-        
-        let stringaPrezzoHtml = `€ ${prezzoUser.toFixed(2).replace('.', ',')}`;
-        if (prezzoUser < prezzoBase) {
-            stringaPrezzoHtml = `<del class="text-muted small me-2" style="font-size:0.9rem;">€ ${prezzoBase.toFixed(2).replace('.', ',')}</del>€ ${prezzoUser.toFixed(2).replace('.', ',')}`;
-        }
+          const cat = p['Categoria'] || 'Senza Categoria';
+          if (!raggruppati[cat]) raggruppati[cat] = [];
+          raggruppati[cat].push(p);
+      });
+      
+      let html = '';
+      
+      // Ordiniamo le categorie in ordine alfabetico
+      const categorieOrdinate = Object.keys(raggruppati).sort();
 
-        const iva = p['Cod. Iva'] ? parseFloat(p['Cod. Iva'].toString().replace('%','').trim()) : 22; 
-        const safeDesc = desc.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        
-        let pesoTxt = "";
-        if (p['Peso netto'] && p['Udm Peso']) pesoTxt = `${p['Peso netto']} ${p['Udm Peso']}`;
-        else if (p['Peso netto']) pesoTxt = `Peso: ${p['Peso netto']}`;
-        else if (p['Udm Peso']) pesoTxt = `Unità: ${p['Udm Peso']}`;
-        
-        const strPesoHtml = pesoTxt ? `<span class="badge bg-secondary mb-2 ms-1">${pesoTxt}</span>` : '';
-        const catText = p['Categoria'] ? `<span class="badge bg-bordeaux mb-2 bg-opacity-75">${p['Categoria']}</span>` : '';
-        const fornitoreTxt = p['Fornitore'] ? `<p class="text-secondary small fw-bold mb-1" style="font-size:0.75rem;"><span class="text-orange">Fornitore:</span> ${formattaFornitore(p['Fornitore'])}</p>` : '';
-
-        html += `
-          <div class="col-xl-3 col-lg-4 col-sm-6 product-card text-start">
-            <div class="card shadow-sm h-100">
-              <div onclick="apriDettaglioProdotto('${cod}')" style="height: 180px; background: #fff; border-radius: 10px 10px 0 0; display: flex; align-items: center; justify-content: center; padding: 15px;">
-                <img src="${imgUrl}" class="product-img-click" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=NO+IMG';" style="max-height: 100%; max-width: 100%; object-fit: contain;">
-              </div>
-              <div class="card-body d-flex flex-column bg-white border-top">
-                <div>${catText} ${strPesoHtml}</div>
-                ${fornitoreTxt}
-                <h6 class="card-title fw-bold text-dark product-title-click" onclick="apriDettaglioProdotto('${cod}')" style="font-size: 0.95rem; line-height: 1.3;" title="${desc}">${desc}</h6>
-                <p class="text-muted mb-2" style="font-size: 0.75rem;">COD. ${cod}</p>
-                <h4 class="text-orange fw-bold mb-3 mt-auto">${stringaPrezzoHtml}</h4>
-                <div class="input-group mt-auto">
-                  <input type="number" class="form-control text-center fw-bold text-secondary" value="1" min="1" id="qty_${cod}">
-                  <button class="btn btn-outline-bordeaux" onclick="addToCart('${cod}', '${safeDesc}', ${prezzoUser}, ${iva})">Aggiungi</button>
-                </div>
-              </div>
-            </div>
+      categorieOrdinate.forEach(catOriginale => {
+          const catPulita = pulisciCategoria(catOriginale);
+          
+          // Inseriamo il Titolo della Categoria
+          html += `
+          <div class="col-12 categoria-header mt-4">
+              <h4>${catPulita}</h4>
           </div>`;
+
+          // Generiamo le card dei prodotti per questa categoria
+          raggruppati[catOriginale].forEach(p => {
+            const cod = p['Cod.']; if(!cod) return; 
+            const desc = p['Descrizione'] || 'N/D';
+            const imgUrl = 'https://plwzkcpujktjqznvwkzb.supabase.co/storage/v1/object/public/BIrre/' + cod + '.jpg';
+            
+            let rawPrice1 = p['Listino 1 (ivato)'] || "0";
+            let rawPriceUser = p[`Listino ${utenteLoggato.listino} (ivato)`] || rawPrice1;
+            
+            const prezzoBase = parseFloat(rawPrice1.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+            const prezzoUser = parseFloat(rawPriceUser.toString().replace('€', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+            
+            let stringaPrezzoHtml = `€ ${prezzoUser.toFixed(2).replace('.', ',')}`;
+            if (prezzoUser < prezzoBase) {
+                stringaPrezzoHtml = `<del class="text-muted small me-2" style="font-size:0.9rem;">€ ${prezzoBase.toFixed(2).replace('.', ',')}</del>€ ${prezzoUser.toFixed(2).replace('.', ',')}`;
+            }
+
+            const iva = p['Cod. Iva'] ? parseFloat(p['Cod. Iva'].toString().replace('%','').trim()) : 22; 
+            const safeDesc = desc.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            
+            let pesoTxt = "";
+            if (p['Peso netto'] && p['Udm Peso']) pesoTxt = `${p['Peso netto']} ${p['Udm Peso']}`;
+            else if (p['Peso netto']) pesoTxt = `Peso: ${p['Peso netto']}`;
+            else if (p['Udm Peso']) pesoTxt = `Unità: ${p['Udm Peso']}`;
+            
+            const strPesoHtml = pesoTxt ? `<span class="badge bg-secondary mb-2 ms-1">${pesoTxt}</span>` : '';
+            const fornitoreTxt = p['Fornitore'] ? `<p class="text-secondary small fw-bold mb-1" style="font-size:0.75rem;"><span class="text-orange">Fornitore:</span> ${formattaFornitore(p['Fornitore'])}</p>` : '';
+
+            html += `
+              <div class="col-xl-3 col-lg-4 col-sm-6 product-card text-start">
+                <div class="card shadow-sm h-100">
+                  <div onclick="apriDettaglioProdotto('${cod}')" style="height: 180px; background: #fff; border-radius: 10px 10px 0 0; display: flex; align-items: center; justify-content: center; padding: 15px;">
+                    <img src="${imgUrl}" class="product-img-click" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=NO+IMG';" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                  </div>
+                  <div class="card-body d-flex flex-column bg-white border-top">
+                    <div>${strPesoHtml}</div>
+                    ${fornitoreTxt}
+                    <h6 class="card-title fw-bold text-dark product-title-click" onclick="apriDettaglioProdotto('${cod}')" style="font-size: 0.95rem; line-height: 1.3;" title="${desc}">${desc}</h6>
+                    <p class="text-muted mb-2" style="font-size: 0.75rem;">COD. ${cod}</p>
+                    <h4 class="text-orange fw-bold mb-3 mt-auto">${stringaPrezzoHtml}</h4>
+                    <div class="input-group mt-auto">
+                      <input type="number" class="form-control text-center fw-bold text-secondary" value="1" min="1" id="qty_${cod}">
+                      <button class="btn btn-outline-bordeaux" onclick="addToCart('${cod}', '${safeDesc}', ${prezzoUser}, ${iva})">Aggiungi</button>
+                    </div>
+                  </div>
+                </div>
+              </div>`;
+          });
       });
       app.innerHTML = html;
     }
@@ -670,7 +708,10 @@
       document.getElementById('modal-prod-title').innerText = p['Descrizione'] || 'N/D';
       document.getElementById('modal-prod-code').innerText = `CODICE: ${codice}`;
       document.getElementById('modal-prod-price').innerHTML = stringaPrezzoHtml;
-      document.getElementById('modal-prod-cat').innerText = p['Categoria'] || 'Generico';
+      
+      // Mostriamo la categoria pulita anche nel modale
+      document.getElementById('modal-prod-cat').innerText = pulisciCategoria(p['Categoria']);
+      
       document.getElementById('modal-prod-fornitore').innerHTML = p['Fornitore'] ? `<span class="text-orange">Fornitore:</span> ${formattaFornitore(p['Fornitore'])}` : '';
       
       const descHTML = document.getElementById('modal-prod-desc');
