@@ -87,7 +87,7 @@
   <div id="login-section" class="center-screen">
     <div class="auth-card text-center">
       <h3 class="mb-2 fw-bold text-bordeaux">Filiere Etiche ADM</h3>
-      <p class="text-orange fw-semibold mb-4">Portale Ordini ADM</p>
+      <p class="text-orange fw-semibold mb-4">Portale Ordini ADM (Sicuro)</p>
       
       <div class="mb-3 text-start">
         <label class="form-label text-muted small fw-bold">Indirizzo Email</label>
@@ -98,7 +98,7 @@
         <input type="password" id="login-password" class="form-control" placeholder="Inserire password">
       </div>
       <button class="btn btn-bordeaux w-100 fw-bold py-2 shadow-sm" onclick="eseguiLogin()" id="btn-login">Accedi al Portale</button>
-      <p id="login-error" class="text-danger mt-3 mb-0 fw-bold" style="display:none;">Credenziali non valide. Riprovare.</p>
+      <p id="login-error" class="text-danger mt-3 mb-0 fw-bold" style="display:none;">Credenziali errate o account non verificato.</p>
       
       <hr class="mt-4 mb-3" style="opacity: 0.1;">
       <p class="small text-muted mb-0">Sei un nuovo cliente? <a href="#" onclick="cambiaVista('register-section')" class="text-bordeaux fw-bold text-decoration-none">Registrati ora</a></p>
@@ -130,7 +130,7 @@
         <label class="form-label text-muted small fw-bold">Scegli una Password</label>
         <input type="password" id="reg-password" class="form-control" placeholder="Minimo 6 caratteri">
       </div>
-      <button class="btn btn-orange w-100 fw-bold py-2 shadow-sm" onclick="eseguiRegistrazione()" id="btn-register">Crea Account</button>
+      <button class="btn btn-orange w-100 fw-bold py-2 shadow-sm" onclick="eseguiRegistrazione()" id="btn-register">Crea Account Sicuro</button>
       
       <hr class="mt-4 mb-3" style="opacity: 0.1;">
       <p class="small text-muted mb-0">Hai già un account? <a href="#" onclick="cambiaVista('login-section')" class="text-orange fw-bold text-decoration-none">Torna al Login</a></p>
@@ -356,7 +356,6 @@
     let utenteLoggato = null; 
     let tuttiProdotti = []; 
 
-    // Helper: Pulisce il nome del fornitore da Danea
     function formattaFornitore(nomeFull) {
         if (!nomeFull) return '';
         const n = nomeFull.toLowerCase();
@@ -365,8 +364,6 @@
         if (n.includes('equomercato')) return 'Equomercato';
         if (n.includes('libero mondo') || n.includes('liberomondo')) return 'LiberoMondo';
         if (n.includes('pasticceria giotto')) return 'Pasticceria Giotto';
-        
-        // Se non è tra i noti, prende al massimo le prime 2 parole
         const words = nomeFull.split(' ');
         return words.slice(0, 2).join(' ');
     }
@@ -395,11 +392,8 @@
       
       document.getElementById(sezione).style.display = 'block';
 
-      if (sezione === 'app-section') {
-        document.getElementById('cart-sticky-bar').style.display = 'flex';
-      } else {
-        document.getElementById('cart-sticky-bar').style.display = 'none';
-      }
+      if (sezione === 'app-section') document.getElementById('cart-sticky-bar').style.display = 'flex';
+      else document.getElementById('cart-sticky-bar').style.display = 'none';
 
       document.querySelectorAll('.sidebar-menu button').forEach(b => {
           b.classList.remove('active', 'fw-bold');
@@ -420,6 +414,7 @@
       }
     }
 
+    // --- NUOVA REGISTRAZIONE SICURA TRAMITE SUPABASE AUTH ---
     async function eseguiRegistrazione() {
       const ragSoc = document.getElementById('reg-ragionesociale').value.trim();
       const piva = document.getElementById('reg-piva').value.trim();
@@ -432,24 +427,34 @@
       if(psw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
       btn.innerText = "Creazione in corso..."; btn.disabled = true;
 
-      const { data: checkEmail } = await clientDB.from('clienti').select('email').eq('email', email);
-      if (checkEmail && checkEmail.length > 0) {
-        alert("Questa email è già registrata. Torna al login.");
-        btn.innerText = "Crea Account"; btn.disabled = false; return;
+      // 1. Creazione Utente Sicuro in Auth
+      const { data: authData, error: authError } = await clientDB.auth.signUp({
+        email: email,
+        password: psw
+      });
+
+      if (authError) {
+        alert("Errore registrazione: " + authError.message);
+        btn.innerText = "Crea Account Sicuro"; btn.disabled = false;
+        return;
       }
 
-      const { error } = await clientDB.from('clienti').insert([{ 
+      // 2. Inserimento dell'anagrafica nella tabella clienti (Ora consentito dalle RLS)
+      const { error: dbError } = await clientDB.from('clienti').insert([{ 
           email: email, password: psw, ragione_sociale: ragSoc, partita_iva: piva, telefono: tel, listino: 1 
       }]);
 
-      if (error) { alert("Errore registrazione: " + error.message); } 
-      else {
-        alert("Account creato con successo! Ora puoi accedere.");
-        cambiaVista('login-section'); document.getElementById('login-email').value = email;
+      if (dbError) {
+          alert("Attenzione: utente creato, ma anagrafica non salvata: " + dbError.message);
+      } else {
+          alert("Account protetto creato con successo! 🎉 Ora puoi effettuare il login.");
+          cambiaVista('login-section');
+          document.getElementById('login-email').value = email;
       }
-      btn.innerText = "Crea Account"; btn.disabled = false;
+      btn.innerText = "Crea Account Sicuro"; btn.disabled = false;
     }
 
+    // --- NUOVO LOGIN SICURO TRAMITE SUPABASE AUTH ---
     async function eseguiLogin() {
       const email = document.getElementById('login-email').value.trim().toLowerCase();
       const psw = document.getElementById('login-password').value.trim();
@@ -457,37 +462,67 @@
       const errorMsg = document.getElementById('login-error');
 
       if(!email || !psw) return;
-      btn.innerText = "Autenticazione..."; btn.disabled = true; errorMsg.style.display = 'none';
+      btn.innerText = "Autenticazione in corso..."; btn.disabled = true; errorMsg.style.display = 'none';
 
-      const { data, error } = await clientDB.from('clienti').select('*').eq('email', email).eq('password', psw).single();
+      // 1. Validazione crittografata con Auth
+      const { data: authData, error: authError } = await clientDB.auth.signInWithPassword({
+        email: email,
+        password: psw
+      });
 
-      if (error || !data) {
-        errorMsg.style.display = 'block'; btn.innerText = "Accedi al Portale"; btn.disabled = false;
-      } else {
-        utenteLoggato = data; 
-        if (!utenteLoggato.listino) utenteLoggato.listino = 1;
-
-        document.getElementById('nome-cliente-display').innerText = `${utenteLoggato.ragione_sociale}`; 
-        
-        document.getElementById('prof-ragione').value = utenteLoggato.ragione_sociale || '';
-        document.getElementById('prof-email').value = utenteLoggato.email || '';
-        document.getElementById('prof-piva').value = utenteLoggato.partita_iva || 'Non inserita';
-        document.getElementById('prof-telefono').value = utenteLoggato.telefono || 'Non inserito';
-
-        cambiaVista('app-section');
-        caricaCatalogo();
+      if (authError) {
+        errorMsg.style.display = 'block'; 
+        btn.innerText = "Accedi al Portale"; btn.disabled = false;
+        return;
       }
+
+      // 2. Lettura Anagrafica (Ora permessa dalle Policy RLS perché siamo loggati!)
+      const { data: clienteData, error: dbError } = await clientDB.from('clienti').select('*').eq('email', email).single();
+
+      if (dbError || !clienteData) {
+        alert("Attenzione: Anagrafica non trovata nel database. Contatta la bottega.");
+        clientDB.auth.signOut();
+        btn.innerText = "Accedi al Portale"; btn.disabled = false;
+        return;
+      }
+
+      utenteLoggato = clienteData; 
+      if (!utenteLoggato.listino) utenteLoggato.listino = 1;
+
+      document.getElementById('nome-cliente-display').innerText = `${utenteLoggato.ragione_sociale}`; 
+      
+      document.getElementById('prof-ragione').value = utenteLoggato.ragione_sociale || '';
+      document.getElementById('prof-email').value = utenteLoggato.email || '';
+      document.getElementById('prof-piva').value = utenteLoggato.partita_iva || 'Non inserita';
+      document.getElementById('prof-telefono').value = utenteLoggato.telefono || 'Non inserito';
+
+      cambiaVista('app-section');
+      caricaCatalogo();
     }
 
+    // --- NUOVO CAMBIO PASSWORD SICURO ---
     async function salvaNuovaPassword() {
       const nuovaPsw = document.getElementById('prof-nuova-psw').value.trim();
       if(nuovaPsw.length < 6) return alert("La password deve avere almeno 6 caratteri.");
-      const { error } = await clientDB.from('clienti').update({ password: nuovaPsw }).eq('email', utenteLoggato.email);
-      if (error) { alert("Errore dal server: " + error.message); } 
-      else { alert("Password aggiornata con successo! 🔐"); document.getElementById('prof-nuova-psw').value = ''; utenteLoggato.password = nuovaPsw; }
+      
+      // Aggiorna l'identità criptata in Auth
+      const { data, error: authError } = await clientDB.auth.updateUser({ password: nuovaPsw });
+      
+      if (authError) { 
+          alert("Errore aggiornamento sicurezza: " + authError.message); 
+      } else { 
+          // Aggiorniamo anche il vecchio campo in tabella clienti per consistenza
+          await clientDB.from('clienti').update({ password: nuovaPsw }).eq('email', utenteLoggato.email);
+          alert("Password aggiornata in modo sicuro! 🔐"); 
+          document.getElementById('prof-nuova-psw').value = ''; 
+          utenteLoggato.password = nuovaPsw; 
+      }
     }
 
-    function eseguiLogout() {
+    async function eseguiLogout() {
+      // Chiude la sessione crittografata in Supabase Auth
+      await clientDB.auth.signOut();
+      
       utenteLoggato = null; cart = {};
       document.getElementById('login-password').value = ''; document.getElementById('prof-nuova-psw').value = '';
       document.getElementById('filtro-testo').value = ''; 
@@ -496,6 +531,7 @@
       aggiornaInterfacciaCarrello(); cambiaVista('login-section');
     }
 
+    // GESTIONE CATALOGO E CARRELLO INVARIATA (ora protetta dalle RLS di lettura)
     async function caricaCatalogo() {
       const app = document.getElementById('app');
       let { data: prodotti, error } = await clientDB.from('prodotti').select('*')
@@ -560,7 +596,6 @@
         const desc = p['Descrizione'] || 'N/D';
         const imgUrl = 'https://plwzkcpujktjqznvwkzb.supabase.co/storage/v1/object/public/BIrre/' + cod + '.jpg';
         
-        // Logica Prezzo Barrato
         let rawPrice1 = p['Listino 1 (ivato)'] || "0";
         let rawPriceUser = p[`Listino ${utenteLoggato.listino} (ivato)`] || rawPrice1;
         
@@ -582,8 +617,6 @@
         
         const strPesoHtml = pesoTxt ? `<span class="badge bg-secondary mb-2 ms-1">${pesoTxt}</span>` : '';
         const catText = p['Categoria'] ? `<span class="badge bg-bordeaux mb-2 bg-opacity-75">${p['Categoria']}</span>` : '';
-        
-        // Fornitore Accorciato
         const fornitoreTxt = p['Fornitore'] ? `<p class="text-secondary small fw-bold mb-1" style="font-size:0.75rem;"><span class="text-orange">Fornitore:</span> ${formattaFornitore(p['Fornitore'])}</p>` : '';
 
         html += `
@@ -703,7 +736,7 @@
           cliente_codice_danea: utenteLoggato.codice_danea || "", bottega_ritiro: bottegaSelezionata, data_ritiro: dataScelta 
       }]);
 
-      if (errorTestata) { alert("Errore creazione testata ordine."); btn.innerHTML = "🚀 Conferma Ordine"; btn.disabled = false; return; }
+      if (errorTestata) { alert("Errore creazione testata ordine. (RLS bloccata?)"); btn.innerHTML = "🚀 Conferma Ordine"; btn.disabled = false; return; }
 
       const righeDettaglio = items.map(item => ({ id_ordine: orderId, codice_articolo: item.codice, quantita: item.qta, prezzo_unitario: item.prezzo }));
       const { error: errorDettaglio } = await clientDB.from('ordini_dettaglio').insert(righeDettaglio);
@@ -727,7 +760,7 @@
         .eq('cliente_ragione_sociale', utenteLoggato.ragione_sociale)
         .order('id_ordine', { ascending: false });
 
-      if (error) { container.innerHTML = `<p class="text-danger fw-bold">Errore di caricamento storico ordini.</p>`; return; }
+      if (error) { container.innerHTML = `<p class="text-danger fw-bold">Errore di caricamento storico ordini: ${error.message}</p>`; return; }
       if (!ordini || ordini.length === 0) { container.innerHTML = `<p class="text-muted fw-bold">Nessun ordine effettuato finora.</p>`; return; }
 
       let html = '<div class="list-group">';
