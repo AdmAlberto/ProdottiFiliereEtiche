@@ -345,7 +345,7 @@
     </button>
   </div>
 
-  <!-- MODALE DETTAGLIO PRODOTTO (Aggiornato con Carrello) -->
+  <!-- MODALE DETTAGLIO PRODOTTO -->
   <div class="modal fade" id="prodottoModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content border-0 shadow-lg">
@@ -370,7 +370,6 @@
                 <div id="modal-prod-desc" class="text-dark" style="line-height: 1.6; font-size: 0.95rem; max-height: 150px; overflow-y: auto;"></div>
               </div>
 
-              <!-- SEZIONE AGGIUNGI AL CARRELLO DAL MODALE -->
               <div id="modal-add-cart-container" class="mt-4 border-top pt-3">
                   <!-- Inserito via Javascript -->
               </div>
@@ -399,6 +398,19 @@
     </div>
   </div>
 
+  <!-- Modale Successo Registrazione -->
+  <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" style="border-top: 6px solid var(--bordeaux) !important;">
+        <div class="modal-body text-center p-5 pt-4">
+          <h3 class="fw-bold text-bordeaux mb-3 mt-3">Registrazione Completata! 🎉</h3>
+          <p class="text-secondary fs-6 mb-4" id="success-modal-msg"></p>
+          <button type="button" class="btn btn-bordeaux btn-lg w-100 fw-bold shadow-sm" data-bs-dismiss="modal">Ho capito, torna al Login</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://plwzkcpujktjqznvwkzb.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsd3prY3B1amt0anF6bnZ3a3piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjE5MzAsImV4cCI6MjA5ODI5NzkzMH0.O7RpanhUWF5zq5DNIvz9DPSdPpk7tYmycuXHRcBpX2k';
@@ -407,7 +419,7 @@
     let cart = {}; 
     let utenteLoggato = null; 
     let tuttiProdotti = []; 
-    let activeMacroTab = 'alimentari'; // alimentari, cosmesi, ricorrenze
+    let activeMacroTab = 'alimentari'; 
 
     function togglePassword(fieldId) {
       const field = document.getElementById(fieldId);
@@ -470,8 +482,6 @@
     }
 
 
-    /* -- INIZIO: FUNZIONI RIPRISTINATE PER INTERO -- */
-
     async function eseguiRegistrazione() {
       const ragSoc = document.getElementById('reg-ragionesociale').value.trim();
       const piva = document.getElementById('reg-piva').value.trim();
@@ -510,9 +520,14 @@
       if (dbError) {
           alert("Attenzione: utente creato, ma anagrafica non salvata: " + dbError.message);
       } else {
-          alert("Registrazione effettuata, torna alla schermata login");
-          cambiaVista('login-section');
-          document.getElementById('login-email').value = email;
+          document.getElementById('success-modal-msg').innerHTML = "Ti abbiamo inviato un'email a <b class='text-dark'>" + email + "</b>.<br><br>Clicca sul link al suo interno per confermare e attivare il tuo account in modo sicuro.";
+          const sModal = new bootstrap.Modal(document.getElementById('successModal'));
+          sModal.show();
+          
+          document.getElementById('successModal').addEventListener('hidden.bs.modal', function () {
+              cambiaVista('login-section');
+              document.getElementById('login-email').value = email;
+          }, { once: true });
       }
       btn.innerText = "Crea Account Sicuro"; btn.disabled = false;
     }
@@ -658,9 +673,7 @@
         
         container.innerHTML = html;
     }
-    /* -- FINE: FUNZIONI RIPRISTINATE -- */
 
-    // GESTIONE CATALOGO E FILTRI
     async function caricaCatalogo() {
       const app = document.getElementById('app');
       let { data: prodotti, error } = await clientDB.from('prodotti').select('*')
